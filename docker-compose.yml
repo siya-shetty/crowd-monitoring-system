@@ -1,0 +1,32 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-crowd_monitoring}
+      POSTGRES_USER: ${POSTGRES_USER:-crowd}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crowd}
+    ports: ["5432:5432"]
+    volumes: [postgres-data:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+  backend:
+    build: ./backend
+    environment:
+      DATABASE_URL: postgresql+psycopg://crowd:${POSTGRES_PASSWORD:-crowd}@postgres:5432/${POSTGRES_DB:-crowd_monitoring}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+    ports: ["8000:8000"]
+    depends_on:
+      postgres: {condition: service_healthy}
+  frontend:
+    build: ./frontend
+    environment: [VITE_API_BASE_URL=http://localhost:8000]
+    ports: ["5173:5173"]
+    depends_on: [backend]
+  cv-service:
+    build: ./cv-service
+    ports: ["8001:8001"]
+volumes:
+  postgres-data:

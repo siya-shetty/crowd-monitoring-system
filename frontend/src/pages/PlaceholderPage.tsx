@@ -1,0 +1,2 @@
+import { Construction, Sparkles } from 'lucide-react'
+export function PlaceholderPage({title,description}:{title:string;description:string}){return <div className="page"><div className="page-heading"><div><p className="eyebrow">PHASE 1 FOUNDATION</p><h1>{title}</h1><p>{description}</p></div></div><article className="empty-state card"><div className="empty-icon"><Construction/></div><h2>Ready for the next phase</h2><p>{description}</p><div><Sparkles size={16}/>Future capability placeholder — no processing is active.</div></article></div>}

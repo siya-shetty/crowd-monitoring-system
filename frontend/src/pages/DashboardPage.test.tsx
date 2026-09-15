@@ -1,0 +1,2 @@
+import { render, screen } from '@testing-library/react'; import { MemoryRouter } from 'react-router-dom'; import { DashboardPage } from './DashboardPage'
+test('renders command center with explicitly labeled demo data',()=>{render(<MemoryRouter><DashboardPage/></MemoryRouter>);expect(screen.getByText('Crowd safety at a glance')).toBeInTheDocument();expect(screen.getAllByText(/DEMO DATA/).length).toBeGreaterThan(0)})
