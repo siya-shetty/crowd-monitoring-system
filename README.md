@@ -44,9 +44,13 @@ cd backend
 
 Registration assigns the `viewer` role and redirects the user to login. The frontend stores the access token in browser local storage for this local-development phase; see Current limitations for the security trade-off.
 
+## Phase 3 video inspection
+
+Authenticated users can upload MP4, WebM, or MOV files up to 100 MB. The backend stores generated storage keys under `VIDEO_STORAGE_PATH` (ignored by Git), then sends the file bytes to the CV service for OpenCV metadata inspection. Status moves from `uploaded` to `processing`, then `completed` or `failed`. The local filesystem adapter can be replaced by object storage later. No YOLO, person detection, tracking, or crowd analytics is implemented.
+
 ## Current limitations
 
-Dashboard values remain explicitly **DEMO DATA**. Phase 2 adds JWT authentication, but it stores the access token in browser `localStorage` for local development. This is practical for the current single-page architecture but is more exposed to XSS than HttpOnly cookies; production deployment should replace this storage adapter with secure cookie-based sessions. There is no camera connection, upload, video processing, YOLO, tracking, heatmap, risk calculation, WebSocket pipeline, alert engine, or analytics implementation. The system will handle aggregate crowd information only; biometric identification is not planned.
+Dashboard values remain explicitly **DEMO DATA**. Phase 2 adds JWT authentication, but it stores the access token in browser `localStorage` for local development. This is practical for the current single-page architecture but is more exposed to XSS than HttpOnly cookies; production deployment should replace this storage adapter with secure cookie-based sessions. Phase 3 supports only synchronous local-file metadata inspection; there is no camera connection, YOLO, detection, tracking, heatmap, risk calculation, WebSocket pipeline, alert engine, or analytics implementation. The system will handle aggregate crowd information only; biometric identification is not planned.
 
 ## Future phases
 

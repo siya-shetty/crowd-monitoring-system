@@ -15,3 +15,9 @@ Start PostgreSQL and all services with `docker compose up --build` when Docker D
 ## Authentication database setup
 
 After PostgreSQL is running, apply the versioned schema with `cd backend; .\.venv\Scripts\alembic.exe upgrade head`. Registration creates a default `viewer` account and redirects to the login screen; it does not automatically create a browser session.
+
+## Phase 3 video inspection
+
+Set `VIDEO_STORAGE_PATH`, `MAX_UPLOAD_SIZE_BYTES`, and `CV_SERVICE_URL` in `.env` (the example defaults to local development values). The backend generates a storage key and writes the upload outside source-controlled directories, records its metadata in PostgreSQL, and posts the stored bytes to `cv-service`'s `/inspect` endpoint. OpenCV verifies the file and returns duration, dimensions, FPS, and frame count; the database status changes from `uploaded` through `processing` to `completed` or `failed`.
+
+Docker Compose mounts the named `video-storage` volume at `/data/videos` in the backend and resolves the CV service as `http://cv-service:8001`. The CV service uses `opencv-python-headless`; use local filesystem storage only for development. An object-storage adapter and queued jobs should replace synchronous inspection before a multi-instance deployment. YOLO, detection, tracking, and crowd analytics are intentionally not part of Phase 3.

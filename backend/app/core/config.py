@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     jwt_secret_key: str = "development-only-replace-before-deployment"
     jwt_algorithm: str = "HS256"
     access_token_expire_minutes: int = 60
+    video_storage_path: str = "storage/videos"
+    max_upload_size_bytes: int = 104857600
+    cv_service_url: str = "http://localhost:8001"
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     @property
     def cors_origin_list(self) -> list[str]: return [item.strip() for item in self.cors_origins.split(",") if item.strip()]
