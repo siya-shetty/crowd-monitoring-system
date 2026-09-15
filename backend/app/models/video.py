@@ -1,7 +1,7 @@
 import uuid
 from datetime import datetime
 from enum import StrEnum
-from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, String, Text, Uuid, func
+from sqlalchemy import DateTime, Enum, Float, ForeignKey, Integer, JSON, String, Text, Uuid, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import Base
 class VideoStatus(StrEnum): UPLOADED="uploaded"; PROCESSING="processing"; COMPLETED="completed"; FAILED="failed"
@@ -14,3 +14,8 @@ class Video(Base):
     status: Mapped[VideoStatus]=mapped_column(Enum(VideoStatus, name="video_status", values_callable=lambda values:[value.value for value in values]), nullable=False, default=VideoStatus.UPLOADED)
     duration_seconds: Mapped[float|None]=mapped_column(Float); width: Mapped[int|None]=mapped_column(Integer); height: Mapped[int|None]=mapped_column(Integer); fps: Mapped[float|None]=mapped_column(Float); frame_count: Mapped[int|None]=mapped_column(Integer); error_message: Mapped[str|None]=mapped_column(Text)
     created_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now()); updated_at: Mapped[datetime]=mapped_column(DateTime(timezone=True), nullable=False, server_default=func.now(), onupdate=func.now()); processing_started_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True)); processing_completed_at: Mapped[datetime|None]=mapped_column(DateTime(timezone=True))
+    detection_summary: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    detection_frames: Mapped[list | None] = mapped_column(JSON, nullable=True)
+    preview_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    @property
+    def has_annotated_preview(self) -> bool: return self.preview_storage_key is not None

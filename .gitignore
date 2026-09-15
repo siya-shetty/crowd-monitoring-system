@@ -20,3 +20,6 @@ video-storage/
 *.mkv
 *.webm
 *.log
+*.pt
+*.onnx
+*.png

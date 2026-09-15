@@ -37,7 +37,7 @@ def complete_inspection(database, video: Video) -> Video:
 
 
 def test_video_upload_access_control_and_cleanup(monkeypatch) -> None:
-    monkeypatch.setattr(videos_api, "inspect_video", complete_inspection)
+    monkeypatch.setattr(videos_api, "analyze_video", complete_inspection)
     owner = register_and_login()
     other = register_and_login()
 

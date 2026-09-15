@@ -48,6 +48,10 @@ Registration assigns the `viewer` role and redirects the user to login. The fron
 
 Authenticated users can upload MP4, WebM, or MOV files up to 100 MB. The backend stores generated storage keys under `VIDEO_STORAGE_PATH` (ignored by Git), then sends the file bytes to the CV service for OpenCV metadata inspection. Status moves from `uploaded` to `processing`, then `completed` or `failed`. The local filesystem adapter can be replaced by object storage later. No YOLO, person detection, tracking, or crowd analytics is implemented.
 
+## Phase 4 person detection
+
+Phase 4 changes video processing to use the official Ultralytics pretrained `yolo11n.pt` nano model, configurable with `YOLO_MODEL`, `YOLO_CONFIDENCE_THRESHOLD`, `YOLO_IMAGE_SIZE`, and `YOLO_FRAME_STRIDE`. The CV service samples frames, retains only the COCO `person` class, and persists a compact summary plus sampled-frame bounding boxes in PostgreSQL. Model weights are downloaded by Ultralytics at runtime and are ignored by Git. Total person detections are repeated detections across sampled frames; they are **not** unique people, attendance, or crowd size. CPU inference is supported. Tracking, persistent IDs, facial analysis, density, and all other Phase 5+ features are not implemented.
+
 ## Current limitations
 
 Dashboard values remain explicitly **DEMO DATA**. Phase 2 adds JWT authentication, but it stores the access token in browser `localStorage` for local development. This is practical for the current single-page architecture but is more exposed to XSS than HttpOnly cookies; production deployment should replace this storage adapter with secure cookie-based sessions. Phase 3 supports only synchronous local-file metadata inspection; there is no camera connection, YOLO, detection, tracking, heatmap, risk calculation, WebSocket pipeline, alert engine, or analytics implementation. The system will handle aggregate crowd information only; biometric identification is not planned.
