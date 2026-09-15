@@ -33,9 +33,20 @@ cd backend; py -3.13 -m pytest
 cd cv-service; py -3.13 -m pytest
 ```
 
+## Authentication setup
+
+Apply PostgreSQL migrations before using registration or login:
+
+```powershell
+cd backend
+.\.venv\Scripts\alembic.exe upgrade head
+```
+
+Registration assigns the `viewer` role and redirects the user to login. The frontend stores the access token in browser local storage for this local-development phase; see Current limitations for the security trade-off.
+
 ## Current limitations
 
-All dashboard values and login are explicitly **DEMO DATA / DEMO AUTHENTICATION**. There is no production authentication, camera connection, upload, video processing, YOLO, tracking, heatmap, risk calculation, WebSocket pipeline, alert engine, or analytics implementation. The system will handle aggregate crowd information only; biometric identification is not planned.
+Dashboard values remain explicitly **DEMO DATA**. Phase 2 adds JWT authentication, but it stores the access token in browser `localStorage` for local development. This is practical for the current single-page architecture but is more exposed to XSS than HttpOnly cookies; production deployment should replace this storage adapter with secure cookie-based sessions. There is no camera connection, upload, video processing, YOLO, tracking, heatmap, risk calculation, WebSocket pipeline, alert engine, or analytics implementation. The system will handle aggregate crowd information only; biometric identification is not planned.
 
 ## Future phases
 

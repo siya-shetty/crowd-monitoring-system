@@ -11,3 +11,7 @@ cd cv-service; py -3.13 -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install
 ```
 
 Start PostgreSQL and all services with `docker compose up --build` when Docker Desktop is available. Use `npm test`, `npm run build`, `py -3.13 -m pytest`, and `git diff --check` before submitting changes.
+
+## Authentication database setup
+
+After PostgreSQL is running, apply the versioned schema with `cd backend; .\.venv\Scripts\alembic.exe upgrade head`. Registration creates a default `viewer` account and redirects to the login screen; it does not automatically create a browser session.

@@ -16,7 +16,7 @@ services:
     build: ./backend
     environment:
       DATABASE_URL: postgresql+psycopg://crowd:${POSTGRES_PASSWORD:-crowd}@postgres:5432/${POSTGRES_DB:-crowd_monitoring}
-      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
     ports: ["8000:8000"]
     depends_on:
       postgres: {condition: service_healthy}
