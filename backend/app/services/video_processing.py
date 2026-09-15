@@ -25,6 +25,7 @@ def analyze_video(database: Session, video: Video) -> Video:
         video.detection_summary = {key: payload[key] for key in SUMMARY_KEYS}
         video.detection_frames = payload["frames"]
         video.tracking_analysis = payload["tracking"]
+        video.crowd_analysis = payload["crowd"]
         preview = payload.get("annotated_preview_base64")
         if preview:
             data = base64.b64decode(preview, validate=True)
@@ -40,7 +41,7 @@ def analyze_video(database: Session, video: Video) -> Video:
         database.rollback()
         if preview_key:
             VideoStorage().delete(preview_key)
-        video.status = VideoStatus.FAILED; video.error_message = "Video detection and tracking analysis could not be completed"
+        video.status = VideoStatus.FAILED; video.error_message = "Video detection, tracking, and crowd analysis could not be completed"
         video.processing_completed_at = datetime.now(UTC)
         database.commit()
     database.refresh(video)

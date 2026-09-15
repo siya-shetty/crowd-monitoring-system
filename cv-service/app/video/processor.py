@@ -12,10 +12,13 @@ from app.tracking.config import TrackingConfig
 from app.tracking.tracker import PersonTracker
 from app.tracking.schemas import TrackingFrame
 from app.tracking.aggregation import aggregate
+from app.crowd.aggregation import aggregate as aggregate_crowd
+from app.crowd.schemas import CrowdConfig
 
 
 def analyze_video(path: Path, model_name: str, confidence: float, image_size: int,
-                  frame_stride: int, tracking_config: TrackingConfig | None = None) -> dict[str, Any]:
+                  frame_stride: int, tracking_config: TrackingConfig | None = None,
+                  crowd_config: CrowdConfig | None = None) -> dict[str, Any]:
     if frame_stride < 1:
         raise ValueError("frame_stride must be at least 1")
     config = tracking_config or TrackingConfig()
@@ -68,6 +71,7 @@ def analyze_video(path: Path, model_name: str, confidence: float, image_size: in
         raise ValueError("Video decoding ended before all frames were processed")
     total = sum(frame["person_count"] for frame in frames)
     tracking = aggregate(tracking_frames, metadata["width"], metadata["height"], config)
+    crowd = aggregate_crowd(tracking_frames, metadata["width"], metadata["height"], crowd_config or CrowdConfig())
     return {**metadata, "model": Path(model_name).name, "confidence_threshold": confidence,
         "frame_stride": frame_stride, "sampled_frames_processed": len(frames),
         "frames_with_people": sum(1 for frame in frames if frame["person_count"]),
@@ -75,4 +79,5 @@ def analyze_video(path: Path, model_name: str, confidence: float, image_size: in
         "maximum_persons_in_sampled_frame": max((frame["person_count"] for frame in frames), default=0),
         "average_persons_per_sampled_frame": total / len(frames) if frames else 0.0,
         "processing_duration_seconds": time.perf_counter() - started, "frames": frames,
-        "tracking": tracking.model_dump(mode="json"), "annotated_preview_base64": preview}
+        "tracking": tracking.model_dump(mode="json"), "crowd": crowd.model_dump(mode="json"),
+        "annotated_preview_base64": preview}

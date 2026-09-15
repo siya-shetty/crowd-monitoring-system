@@ -44,7 +44,7 @@ git diff --check
 git status --untracked-files=all
 ```
 
-Backend tests require local PostgreSQL at Alembic head `20260915_04` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses a transaction-local temporary table and never downgrades the real database.
+Backend tests require local PostgreSQL at Alembic head `20260915_05` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses a transaction-local temporary table and never downgrades the real database.
 
 ## Real tracking gate
 
@@ -68,8 +68,12 @@ Every-frame tracking is the default for continuity. Increasing tracking stride r
 
 The CV Dockerfile installs CPU-only PyTorch/Torchvision wheels before requirements, plus OpenCV runtime libraries. No NVIDIA container runtime or CUDA device is required. `lap` is installed explicitly, avoiding dependency installation during a request. Ultralytics is pinned because the adapter depends on its tested tracker extension point. Review and rerun both real and mocked gates before upgrading it.
 
-Compose forwards YOLO/tracker configuration. Model weights are downloaded at runtime rather than copied from the host build context. Source media and previews live in the backend's named storage volume until deletion. Compose is a development foundation; configure authentication secrets and production storage/security separately.
+Compose forwards YOLO/tracker and crowd count threshold configuration. Model weights are downloaded at runtime rather than copied from the host build context. Source media and previews live in the backend's named storage volume until deletion. Compose is a development foundation; configure authentication secrets and production storage/security separately.
 
 ## Privacy and quality
 
-Anonymous labels only describe continuity inside one analyzed video. `distinct_track_ids != guaranteed unique real-world people`. Occlusions, crowded scenes, misses, ID switches, fragmentation, exits/re-entry, camera motion and frame sampling cause errors. Confidence is a detector score, not measured tracking accuracy. Normalized center trajectories are not calibrated distances or speeds. No identity, face, demographic, re-identification, or later-phase crowd analytics are present.
+Anonymous labels only describe continuity inside one analyzed video. `distinct_track_ids != guaranteed unique real-world people`. Occlusions, crowded scenes, misses, ID switches, fragmentation, exits/re-entry, camera motion and frame sampling cause errors. Confidence is a detector score, not measured tracking accuracy. Normalized center trajectories are not calibrated distances or speeds. No identity, face, demographic, re-identification, or later-phase alerting features are present.
+
+## Phase 6 verification
+
+See [crowd analysis](crowd-analysis.md#verification) for deterministic tests, the real CPU crowd gate, and the required browser workflow. Start or restart both services after deploying Phase 6; the backend requires the new crowd response contract.

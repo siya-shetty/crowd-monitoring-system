@@ -4,6 +4,7 @@ from collections import defaultdict
 from typing import Self
 from pydantic import Field, model_validator
 from app.schemas.tracking import Contract, PersonBox, TrackingAnalysis
+from app.schemas.crowd import CrowdAnalysis
 
 
 class DetectionFrame(Contract):
@@ -30,6 +31,7 @@ class AnalysisResponse(Contract):
     processing_duration_seconds: float = Field(ge=0)
     frames: list[DetectionFrame]
     tracking: TrackingAnalysis
+    crowd: CrowdAnalysis
     annotated_preview_base64: str | None = None
 
     @model_validator(mode="after")
@@ -95,4 +97,10 @@ class AnalysisResponse(Contract):
         same(summary.distinct_track_ids, len(ids))
         same(summary.longest_track_observation_length, max(lengths, default=0))
         same(summary.average_track_observation_length, sum(lengths) / len(lengths) if lengths else 0)
+        if len(self.crowd.frames) != len(self.tracking.frames):
+            raise ValueError("Incomplete crowd frames")
+        for crowd, tracked in zip(self.crowd.frames, self.tracking.frames):
+            if crowd.frame_index != tracked.frame_index or crowd.observed_crowd_count != tracked.active_track_count:
+                raise ValueError("Crowd does not match active tracking observations")
+            same(crowd.timestamp_seconds, tracked.timestamp_seconds)
         return self

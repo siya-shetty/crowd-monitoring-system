@@ -11,5 +11,6 @@ test('renders failed tracking status and safe analysis error', async () => {
   vi.mocked(listVideos).mockResolvedValueOnce([{id:'failed',original_filename:'failed.mp4',status:'failed',error_message:'Video detection and tracking analysis could not be completed'} as Awaited<ReturnType<typeof listVideos>>[number]])
   render(<MemoryRouter><VideosPage/></MemoryRouter>)
   expect(await screen.findByText('Tracking status: failed')).toBeInTheDocument()
+  expect(screen.getByText('Crowd analysis status: failed')).toBeInTheDocument()
   expect(screen.getByRole('alert')).toHaveTextContent('Video detection and tracking analysis could not be completed')
 })

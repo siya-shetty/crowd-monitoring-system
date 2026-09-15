@@ -1,0 +1,16 @@
+def crowd_payload():
+    return dict(schema_version=1,
+        config=dict(moderate_count=5, high_count=10, very_high_count=20, trend_window_frames=10, trend_min_change=1),
+        frames=[dict(frame_index=i, timestamp_seconds=i/10, observed_crowd_count=1,
+            image_occupancy_ratio=.04, crowd_concentration=0., crowd_level='LOW',
+            crowd_count_delta=0, crowd_trend='stable') for i in range(2)],
+        summary=dict(processed_crowd_frames=2, frames_with_observed_people=2,
+            minimum_observed_crowd_count=1, maximum_observed_crowd_count=1,
+            average_observed_crowd_count=1., median_observed_crowd_count=1.,
+            peak_crowd_frame=0, peak_crowd_timestamp_seconds=0.,
+            average_image_occupancy=.04, maximum_image_occupancy=.04,
+            peak_occupancy_frame=0, peak_occupancy_timestamp_seconds=0.,
+            average_crowd_concentration=0., maximum_crowd_concentration=0.,
+            level_distribution=[dict(level=level, frames=2 if level=='LOW' else 0,
+                percentage=100. if level=='LOW' else 0.) for level in ['LOW','MODERATE','HIGH','VERY_HIGH']],
+            final_crowd_trend='stable'))

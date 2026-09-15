@@ -13,13 +13,14 @@ from app.services import video_processing
 from app.services.video_storage import VideoStorage
 from app.schemas.analysis import AnalysisResponse
 from test_videos import register_and_login
+from crowd_payload import crowd_payload
 
 
 def payload():
     box = dict(x1=1., y1=2., x2=3., y2=4., confidence=.8)
     frames = [dict(frame_index=i, timestamp_seconds=i / 10, active_track_count=1,
                    tracked_persons=[dict(track_id=1, **box)]) for i in range(2)]
-    return dict(width=10, height=10, fps=10., frame_count=2, duration_seconds=.2,
+    return dict(crowd=crowd_payload(), width=10, height=10, fps=10., frame_count=2, duration_seconds=.2,
         model='yolo11n.pt', confidence_threshold=.35, frame_stride=1, sampled_frames_processed=2,
         frames_with_people=2, total_person_detections=2, maximum_persons_in_sampled_frame=1,
         average_persons_per_sampled_frame=1., processing_duration_seconds=.1,
@@ -118,7 +119,7 @@ def test_migration_head_and_contract_mirror():
     root = Path(__file__).resolve().parents[2]
     assert (root / 'cv-service/app/tracking/schemas.py').read_bytes() == (root / 'backend/app/schemas/tracking.py').read_bytes()
     with SessionLocal() as db:
-        assert db.execute(text('SELECT version_num FROM alembic_version')).scalar_one() == '20260915_04'
+        assert db.execute(text('SELECT version_num FROM alembic_version')).scalar_one() == '20260915_05'
         assert db.execute(text("SELECT is_nullable FROM information_schema.columns WHERE table_name='videos' AND column_name='tracking_analysis'")).scalar_one() == 'YES'
 
 

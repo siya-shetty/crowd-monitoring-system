@@ -18,5 +18,6 @@ class Video(Base):
     detection_frames: Mapped[list | None] = mapped_column(JSON, nullable=True)
     preview_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tracking_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    crowd_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     @property
     def has_annotated_preview(self) -> bool: return self.preview_storage_key is not None

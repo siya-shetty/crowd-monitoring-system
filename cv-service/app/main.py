@@ -42,13 +42,15 @@ def inspect_upload(file: UploadFile = File(...)) -> dict[str, float | int]: retu
 def analyze_upload(file: UploadFile = File(...)) -> dict[str, Any]:
     from app.video.processor import analyze_video
     from app.tracking.config import TrackingConfig
+    from app.crowd.config import from_environment
     model = os.getenv("YOLO_MODEL", "yolo11n.pt")
     try:
         confidence = float(os.getenv("YOLO_CONFIDENCE_THRESHOLD", "0.35"))
         image_size = int(os.getenv("YOLO_IMAGE_SIZE", "640")); stride = int(os.getenv("YOLO_FRAME_STRIDE", "5"))
         tracking = TrackingConfig.from_environment()
+        crowd = from_environment()
     except ValueError:
         raise HTTPException(status_code=422, detail="Invalid inference configuration") from None
     if not 0 < confidence <= 1 or image_size < 32 or stride < 1:
         raise HTTPException(status_code=422, detail="Invalid inference configuration")
-    return with_upload(file, lambda path: analyze_video(path, model, confidence, image_size, stride, tracking))
+    return with_upload(file, lambda path: analyze_video(path, model, confidence, image_size, stride, tracking, crowd))

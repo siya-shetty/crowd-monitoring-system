@@ -9,7 +9,8 @@ flowchart LR
   B -->|Uploaded bytes via HTTP| CV[CV video processor]
   CV --> D[Cached YOLO11 person detector]
   D --> T[Per-video ByteTrack adapter]
-  T --> A[Typed frame results and history aggregation]
+  T --> C[Crowd image-space analyzer]
+  C --> A[Typed frame results and aggregation]
   A -->|Validated analysis contract| B
   B --> P[(PostgreSQL)]
   B -->|JWT protected JPEG and JSON| F
@@ -40,3 +41,7 @@ Tracking summaries retain tracker settings and carefully named metrics. Distinct
 ## Operational boundaries
 
 The detector is shared and locked, while motion state and ID allocation are per-video. Worker processes can use the same orchestration boundary later. Synchronous HTTP, JSON-in-row storage, whole-response transfer, and full trajectory rendering are intended for short clips. Future queue/recovery/retention work is separate; no Redis or Celery is added here.
+
+## Phase 6 extension
+
+The CV crowd module consumes the existing tracked observations in the same processing pass, with no new inference or decoding. Migration 20260915_05 adds nullable crowd_analysis JSON. The backend validates its versioned contract, frame alignment, statistics, peaks and operational categories before atomic persistence. The owner-protected frontend renders count and image occupancy timelines, level distribution, and trend. See [full formulas and contract](crowd-analysis.md).

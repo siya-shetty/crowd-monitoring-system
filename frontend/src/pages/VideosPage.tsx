@@ -4,6 +4,7 @@ import { Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from 'rec
 import { ApiError, deleteVideo, listVideos, uploadVideo, type Video } from '../services/apiClient'
 import { VideoPreview } from '../components/VideoPreview'
 import { TrackingResults } from '../components/TrackingResults'
+import { CrowdResults } from '../components/CrowdResults'
 
 const formats = ['video/mp4', 'video/webm', 'video/quicktime']
 const max = 100 * 1024 * 1024
@@ -80,6 +81,7 @@ export function VideosPage() {
           <h3>{video.original_filename}</h3>
           <p>Analysis status: {video.status}</p>
           <p>Tracking status: {video.tracking_analysis ? 'Completed' : video.status === 'completed' ? 'Not available for this earlier analysis' : video.status}</p>
+          <p>Crowd analysis status: {video.crowd_analysis ? 'Completed' : video.status === 'completed' ? 'Not available for this earlier analysis' : video.status}</p>
           {video.width && video.height && <p>{video.width} x {video.height} pixels; {video.fps} FPS; {video.duration_seconds?.toFixed(2)} seconds</p>}
           {video.detection_summary && <>
             <h4>Person Detection</h4>
@@ -91,6 +93,7 @@ export function VideosPage() {
             </ResponsiveContainer>}
           </>}
           {video.has_annotated_preview && <VideoPreview videoId={video.id}/>}
+          {video.crowd_analysis && <CrowdResults analysis={video.crowd_analysis}/>}
           {video.tracking_analysis && <TrackingResults analysis={video.tracking_analysis} width={video.width ?? 1} height={video.height ?? 1}/>}
           {video.error_message && <p role="alert">{video.error_message}</p>}
         </div>

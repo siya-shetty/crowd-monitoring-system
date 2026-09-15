@@ -1,6 +1,6 @@
 # Crowd Monitoring and Crowd Safety System
 
-A privacy-conscious crowd-monitoring project. Phases 1–5 provide a React/TypeScript Sentinel Grid interface, JWT authentication, PostgreSQL persistence, protected video uploads, YOLO11 person detection, and anonymous within-video ByteTrack tracking.
+A privacy-conscious crowd-monitoring project. Phases 1–6 provide a React/TypeScript Sentinel Grid interface, JWT authentication, PostgreSQL persistence, protected video uploads, YOLO11 person detection, anonymous within-video ByteTrack tracking, and image-space crowd analytics.
 
 ## Quick start
 
@@ -55,8 +55,12 @@ The UI displays detection and tracking separately, an active-track timeline, sel
 
 ## Privacy and limits
 
-No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. No density, heatmaps, zones, alerts, cameras, WebSockets, or training are implemented in Phase 5.
+No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration. No physical density, heatmaps, zones, alerts, cameras, WebSockets, or training are implemented.
 
 Uploaded footage and annotated previews remain sensitive local files even though track IDs are anonymous. They are retained until the owner deletes the video; there is no automatic retention job. Frame images are not stored in trajectories. The CV upload copy is deleted after analysis, including failures. Model weights, media, previews, logs, and secrets are excluded from Git; CV Docker context excludes runtime media and weights.
 
 Processing remains synchronous and memory usage grows with observations; use short development clips. Process termination may leave a processing row requiring future worker reconciliation. Ordinary CV/validation/timeouts become safe failed states. There is no retry queue, automatic recovery worker, or large-video scalability guarantee. JWT localStorage is retained from Phase 2 and should be replaced with secure sessions before production. Dashboard values remain explicitly demo data.
+
+## Crowd analysis
+
+Phase 6 adds observed crowd counts, rectangle-union image occupancy, normalized center concentration, configurable count categories, and descriptive trends. See [crowd analysis definitions, configuration, and limitations](docs/crowd-analysis.md). Results are stored in nullable versioned crowd_analysis JSON with migration 20260915_05. Old videos remain readable; newly uploaded videos receive crowd analytics.
