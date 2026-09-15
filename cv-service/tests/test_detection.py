@@ -30,6 +30,7 @@ def test_processor_preserves_stride_frame_indices_timestamps_and_summary(monkeyp
         def detect(self, frame): return [{'x1': 1., 'y1': 2., 'x2': 3., 'y2': 4., 'confidence': .8}]
     monkeypatch.setattr(processor, 'inspect', lambda path: {'width': 10, 'height': 10, 'fps': 2., 'frame_count': 5, 'duration_seconds': 2.5})
     monkeypatch.setattr(processor, 'get_detector', lambda *args: Detector())
+    monkeypatch.setattr(processor, 'PersonTracker', lambda *args: SimpleNamespace(update=lambda boxes: []))
     monkeypatch.setattr(processor.cv2, 'VideoCapture', lambda path: Capture())
     monkeypatch.setattr(processor.cv2, 'imencode', lambda *args: (False, None))
     result = processor.analyze_video('x', 'fake', .35, 640, 2)

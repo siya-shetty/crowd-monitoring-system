@@ -2,6 +2,9 @@ from __future__ import annotations
 
 from functools import lru_cache
 from typing import Any
+from threading import RLock
+
+_model_lock = RLock()
 
 
 PERSON_CLASS_NAME = "person"
@@ -18,7 +21,8 @@ class PersonDetector:
         self.model: Any = YOLO(model_name)
 
     def detect(self, frame: Any) -> list[dict[str, float]]:
-        result = self.model(frame, conf=self.confidence, imgsz=self.image_size, verbose=False)[0]
+        with _model_lock:
+            result = self.model(frame, conf=self.confidence, imgsz=self.image_size, device="cpu", verbose=False)[0]
         names = result.names
         detections: list[dict[str, float]] = []
         for box in result.boxes:
@@ -31,5 +35,10 @@ class PersonDetector:
 
 
 @lru_cache
-def get_detector(model_name: str, confidence: float, image_size: int) -> PersonDetector:
+def _load_detector(model_name: str, confidence: float, image_size: int) -> PersonDetector:
     return PersonDetector(model_name, confidence, image_size)
+
+
+def get_detector(model_name: str, confidence: float, image_size: int) -> PersonDetector:
+    with _model_lock:
+        return _load_detector(model_name, confidence, image_size)

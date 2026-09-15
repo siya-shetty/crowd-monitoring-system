@@ -4,4 +4,7 @@ pytest==9.0.2
 httpx==0.28.1
 python-multipart==0.0.20
 opencv-python-headless==4.11.0.86
-ultralytics>=8.3.0,<9
+# Ultralytics also declares this distribution; keep both on the verified ABI.
+opencv-python==4.11.0.86
+ultralytics==8.4.152
+lap==0.5.13

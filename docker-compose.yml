@@ -19,6 +19,7 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5173,http://127.0.0.1:5173}
       VIDEO_STORAGE_PATH: /data/videos
       CV_SERVICE_URL: http://cv-service:8001
+      CV_ANALYSIS_TIMEOUT_SECONDS: ${CV_ANALYSIS_TIMEOUT_SECONDS:-600}
     ports: ["8000:8000"]
     depends_on:
       postgres: {condition: service_healthy}
@@ -31,6 +32,17 @@ services:
     depends_on: [backend]
   cv-service:
     build: ./cv-service
+    environment:
+      YOLO_MODEL: ${YOLO_MODEL:-yolo11n.pt}
+      YOLO_CONFIDENCE_THRESHOLD: ${YOLO_CONFIDENCE_THRESHOLD:-0.35}
+      YOLO_IMAGE_SIZE: ${YOLO_IMAGE_SIZE:-640}
+      YOLO_FRAME_STRIDE: ${YOLO_FRAME_STRIDE:-5}
+      TRACKER_TYPE: ${TRACKER_TYPE:-bytetrack}
+      TRACK_FRAME_STRIDE: ${TRACK_FRAME_STRIDE:-1}
+      TRACK_HIGH_THRESHOLD: ${TRACK_HIGH_THRESHOLD:-0.25}
+      TRACK_LOW_THRESHOLD: ${TRACK_LOW_THRESHOLD:-0.1}
+      TRACK_MATCH_THRESHOLD: ${TRACK_MATCH_THRESHOLD:-0.8}
+      TRACK_BUFFER: ${TRACK_BUFFER:-30}
     ports: ["8001:8001"]
 volumes:
   postgres-data:

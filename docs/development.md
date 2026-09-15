@@ -1,27 +1,75 @@
 # Development
 
-Copy `.env.example` to `.env`; do not commit it. Python 3.12+ is required (the verified host uses `py -3.13`).
+## Local setup
 
-Install and run locally:
+Copy `.env.example` to `.env`; never commit it. Start PostgreSQL with `docker compose up -d postgres`. From each service directory create its own Python environment and install requirements. The verified host uses Python 3.13.
 
 ```powershell
-cd frontend; npm install; npm run dev
-cd backend; py -3.13 -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt; uvicorn app.main:app --reload
-cd cv-service; py -3.13 -m venv .venv; .\.venv\Scripts\Activate.ps1; pip install -r requirements.txt; uvicorn app.main:app --reload --port 8001
+# backend
+py -3.13 -m venv .venv
+.venv/Scripts/python.exe -m pip install -r requirements.txt
+.venv/Scripts/alembic.exe upgrade head
+.venv/Scripts/python.exe -m uvicorn app.main:app --reload --port 8000
 ```
 
-Start PostgreSQL and all services with `docker compose up --build` when Docker Desktop is available. Use `npm test`, `npm run build`, `py -3.13 -m pytest`, and `git diff --check` before submitting changes.
+```powershell
+# cv-service: install CPU wheels first
+py -3.13 -m venv .venv
+.venv/Scripts/python.exe -m pip install --index-url https://download.pytorch.org/whl/cpu torch==2.14.0 torchvision==0.29.0
+.venv/Scripts/python.exe -m pip install -r requirements.txt
+.venv/Scripts/python.exe -m uvicorn app.main:app --env-file ../.env --port 8001
+```
 
-## Authentication database setup
+Backend settings load a `.env` in its working directory; use shell environment variables or `--env-file ../.env` for the server when using the root file. Alembic also needs DATABASE_URL in its environment if it differs from the local default. CV settings read process environment; root `.env` is not automatically loaded without `--env-file`. Restart services after configuration changes. Model weights download on first use and stay outside version control.
 
-After PostgreSQL is running, apply the versioned schema with `cd backend; .\.venv\Scripts\alembic.exe upgrade head`. Registration creates a default `viewer` account and redirects to the login screen; it does not automatically create a browser session.
+```powershell
+# frontend
+npm install
+npm run dev
+```
 
-## Phase 3 video inspection
+Use [frontend](http://localhost:5173), [backend health](http://localhost:8000/health), and [CV health](http://localhost:8001/health). Health does not eagerly load model weights.
 
-Set `VIDEO_STORAGE_PATH`, `MAX_UPLOAD_SIZE_BYTES`, and `CV_SERVICE_URL` in `.env` (the example defaults to local development values). The backend generates a storage key and writes the upload outside source-controlled directories, records its metadata in PostgreSQL, and posts the stored bytes to `cv-service`'s `/inspect` endpoint. OpenCV verifies the file and returns duration, dimensions, FPS, and frame count; the database status changes from `uploaded` through `processing` to `completed` or `failed`.
+## Checks
 
-Docker Compose mounts the named `video-storage` volume at `/data/videos` in the backend and resolves the CV service as `http://cv-service:8001`. The CV service uses `opencv-python-headless`; use local filesystem storage only for development. An object-storage adapter and queued jobs should replace synchronous inspection before a multi-instance deployment. YOLO, detection, tracking, and crowd analytics are intentionally not part of Phase 3.
+```powershell
+# Run from each respective directory
+.venv/Scripts/python.exe -m pytest tests -q
+npm test
+npm run lint
+npm run build
+# Repository root
+docker compose config --quiet
+git diff --check
+git status --untracked-files=all
+```
 
-## Phase 4 person detection
+Backend tests require local PostgreSQL at Alembic head `20260915_04` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses a transaction-local temporary table and never downgrades the real database.
 
-The CV service lazily loads Ultralytics' official pretrained `yolo11n.pt` model once per process. Each `YOLO_FRAME_STRIDE`-th frame is decoded and inferred on; lower strides improve temporal coverage but increase CPU time, while higher strides are faster and can miss short-lived people. Only COCO's `person` class is serialized. The backend validates the CV JSON response before persisting the summary and sampled-frame results as JSON columns on `videos`; no filesystem path is returned. Synchronous inference is for development only. Confidence is a model score, not a measured accuracy percentage. Person detections are not unique people: Phase 4 intentionally has no tracking or identity features.
+## Real tracking gate
+
+Download the public [OpenCV vtest.avi sample](https://github.com/opencv/opencv/blob/master/samples/data/vtest.avi) to ignored storage, or supply your own appropriately authorized person-containing clip. From `cv-service`:
+
+```powershell
+.venv/Scripts/python.exe scripts/verify_tracking.py ../storage/phase5-verification/source.avi ../storage/phase5-verification
+```
+
+This generates a 40-consecutive-frame MP4, performs real CPU YOLO/ByteTrack twice, checks ID continuity and moving trajectories, tests interleaved real tracker instances, and saves an ignored numerical report. It requires actual people; fabricated movement of a still image is not used as tracking evidence.
+
+Then use the browser to sign in, upload the MP4, inspect detection/tracking metrics, preview labels and selected trajectories, refresh, and delete. Verify the database record and stored upload/preview disappear. Do not commit verification media or credentials.
+
+## Configuration and trade-offs
+
+See [README](../README.md) for defaults and [architecture](architecture.md) for contracts. Detection reporting stride and tracking stride are independent; inference is shared on their union. Detection confidence remains a reporting filter. ByteTrack uses retained person detections at its low threshold, initializes at its high threshold, and never receives other COCO classes.
+
+Every-frame tracking is the default for continuity. Increasing tracking stride reduces work only on frames not otherwise needed for detection reporting, weakens association, and changes the real-time interval represented by the lost-track buffer. Skipped source frames are not tracked. All timestamps refer to the original source index / FPS, not elapsed processing time.
+
+## Docker
+
+The CV Dockerfile installs CPU-only PyTorch/Torchvision wheels before requirements, plus OpenCV runtime libraries. No NVIDIA container runtime or CUDA device is required. `lap` is installed explicitly, avoiding dependency installation during a request. Ultralytics is pinned because the adapter depends on its tested tracker extension point. Review and rerun both real and mocked gates before upgrading it.
+
+Compose forwards YOLO/tracker configuration. Model weights are downloaded at runtime rather than copied from the host build context. Source media and previews live in the backend's named storage volume until deletion. Compose is a development foundation; configure authentication secrets and production storage/security separately.
+
+## Privacy and quality
+
+Anonymous labels only describe continuity inside one analyzed video. `distinct_track_ids != guaranteed unique real-world people`. Occlusions, crowded scenes, misses, ID switches, fragmentation, exits/re-entry, camera motion and frame sampling cause errors. Confidence is a detector score, not measured tracking accuracy. Normalized center trajectories are not calibrated distances or speeds. No identity, face, demographic, re-identification, or later-phase crowd analytics are present.

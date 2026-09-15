@@ -3,3 +3,10 @@
 .test-tmp
 __pycache__
 .env
+*.pt
+*.onnx
+*.log
+*.mp4
+*.avi
+*.jpg
+storage
