@@ -14,7 +14,12 @@ async function request<T>(path: string, init: RequestInit = {}, authenticated = 
   const token = authenticated ? getStoredToken() : null
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const response = await fetch(`${baseUrl}${path}`, { ...init, headers })
-  if (!response.ok) { if (response.status === 401) window.dispatchEvent(new Event('auth:unauthorized')); const body = await response.json().catch(() => ({ detail: 'Request failed' })) as { detail?: string }; throw new ApiError(response.status, body.detail ?? 'Request failed') }
+  if (!response.ok) {
+    if (response.status === 401) window.dispatchEvent(new Event('auth:unauthorized'))
+    const body = await response.json().catch(() => ({ detail: 'Request failed' })) as { detail?: string | Array<{msg?:string}> }
+    const message = typeof body.detail === 'string' ? body.detail : Array.isArray(body.detail) ? body.detail.map(e=>e.msg??'Invalid input').join('; ') : 'Request failed'
+    throw new ApiError(response.status, message)
+  }
   if (response.status === 204) return undefined as T
   return response.json() as Promise<T>
 }
@@ -36,8 +41,20 @@ export type CrowdAnalysis = {
   frames:CrowdFrame[]
   summary:{processed_crowd_frames:number;frames_with_observed_people:number;minimum_observed_crowd_count:number;maximum_observed_crowd_count:number;average_observed_crowd_count:number;median_observed_crowd_count:number;peak_crowd_frame:number|null;peak_crowd_timestamp_seconds:number|null;average_image_occupancy:number;maximum_image_occupancy:number;peak_occupancy_frame:number|null;peak_occupancy_timestamp_seconds:number|null;average_crowd_concentration:number;maximum_crowd_concentration:number;level_distribution:Array<{level:CrowdLevel;frames:number;percentage:number}>;final_crowd_trend:CrowdTrend}
 }
-export type Video = { id:string; original_filename:string; content_type:string; file_size:number; status:'uploaded'|'processing'|'completed'|'failed'; duration_seconds:number|null; width:number|null; height:number|null; fps:number|null; frame_count:number|null; error_message:string|null; created_at:string; detection_summary:DetectionSummary|null; detection_frames:DetectionFrame[]|null; has_annotated_preview:boolean; tracking_analysis?:TrackingAnalysis|null; crowd_analysis?:CrowdAnalysis|null }
+export type Video = { id:string; original_filename:string; content_type:string; file_size:number; status:'uploaded'|'processing'|'completed'|'failed'; duration_seconds:number|null; width:number|null; height:number|null; fps:number|null; frame_count:number|null; error_message:string|null; created_at:string; detection_summary:DetectionSummary|null; detection_frames:DetectionFrame[]|null; has_annotated_preview:boolean; tracking_analysis?:TrackingAnalysis|null; crowd_analysis?:CrowdAnalysis|null; heatmap_analysis?:Heatmap|null }
 export function uploadVideo(file:File):Promise<Video>{const form=new FormData();form.append('file',file);return request<Video>('/api/v1/videos',{method:'POST',body:form},true)}
 export function listVideos():Promise<Video[]>{return request<Video[]>('/api/v1/videos',{},true)}
 export function deleteVideo(id:string):Promise<void>{return request<void>(`/api/v1/videos/${id}`,{method:'DELETE'},true)}
 export async function getVideoPreview(id: string): Promise<Blob> { const response = await fetch(`${baseUrl}/api/v1/videos/${id}/preview`, { headers: { Authorization: `Bearer ${getStoredToken() ?? ''}` } }); if (!response.ok) throw new ApiError(response.status, 'Preview unavailable'); return response.blob() }
+
+export type Point = { x:number; y:number }
+export type Heatmap = { schema_version:1; grid_width:number; grid_height:number; raw_counts:number[][]; total_valid_spatial_observations:number; maximum_cell_observation_count:number; hottest_cell:[number,number]|null; hottest_cell_center:Point|null }
+export type ZoneFrame = {frame_index:number;timestamp_seconds:number;active_tracks_in_zone:number;track_ids_in_zone:number[]}
+export type ZoneAnalysis = {schema_version:1;frames:ZoneFrame[];summary:{processed_frames:number;frames_with_people:number;maximum_simultaneous_tracks:number;average_simultaneous_tracks:number;median_simultaneous_tracks:number;earliest_peak_frame:number|null;earliest_peak_timestamp_seconds:number|null;distinct_anonymous_track_ids:number;total_track_observations:number}}
+export type ZoneInput = {name:string;description:string|null;polygon:Point[];active:boolean}
+export type Zone = ZoneInput & {id:string;video_id:string;created_at:string;updated_at:string;analysis:ZoneAnalysis|null}
+export function listZones(videoId:string):Promise<Zone[]> { return request(`/api/v1/videos/${videoId}/zones`,{},true) }
+export function createZone(videoId:string,payload:ZoneInput):Promise<Zone> { return request(`/api/v1/videos/${videoId}/zones`,{method:'POST',body:JSON.stringify(payload)},true) }
+export function updateZone(videoId:string,id:string,payload:Partial<ZoneInput>):Promise<Zone> { return request(`/api/v1/videos/${videoId}/zones/${id}`,{method:'PATCH',body:JSON.stringify(payload)},true) }
+export function deleteZone(videoId:string,id:string):Promise<void> { return request(`/api/v1/videos/${videoId}/zones/${id}`,{method:'DELETE'},true) }
+export function generateHeatmap(videoId:string):Promise<Heatmap> { return request(`/api/v1/videos/${videoId}/heatmap`,{method:'POST'},true) }

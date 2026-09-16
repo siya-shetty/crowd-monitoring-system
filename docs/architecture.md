@@ -45,3 +45,14 @@ The detector is shared and locked, while motion state and ID allocation are per-
 ## Phase 6 extension
 
 The CV crowd module consumes the existing tracked observations in the same processing pass, with no new inference or decoding. Migration 20260915_05 adds nullable crowd_analysis JSON. The backend validates its versioned contract, frame alignment, statistics, peaks and operational categories before atomic persistence. The owner-protected frontend renders count and image occupancy timelines, level distribution, and trend. See [full formulas and contract](crowd-analysis.md).
+
+## Phase 7 extension
+
+The backend derives heatmaps and zone counts from persisted tracking frames using
+one canonical spatial geometry implementation. A new upload stores its heatmap
+atomically with existing analyses. Zone CRUD recalculates only geometry, with no
+CV HTTP requests. Migration `20260916_06` adds video heatmap JSON and a cascading
+video-owned monitoring-zones table. The frontend uses normalized SVG overlays,
+an authenticated preview and persisted zone summaries/timelines. Read the
+[spatial contract and design decisions](spatial-analysis.md), including inactive
+zone semantics, overlapping zones and deferred occupancy/dwell metrics.

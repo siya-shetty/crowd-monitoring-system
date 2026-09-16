@@ -15,6 +15,8 @@ class Settings(BaseSettings):
     max_upload_size_bytes: int = 104857600
     cv_service_url: str = "http://localhost:8001"
     cv_analysis_timeout_seconds: float = Field(default=600, gt=0, le=3600)
+    heatmap_grid_width: int = Field(default=32, ge=1, le=128)
+    heatmap_grid_height: int = Field(default=18, ge=1, le=128)
     model_config = SettingsConfigDict(env_file=".env", extra="ignore")
     @property
     def cors_origin_list(self) -> list[str]: return [item.strip() for item in self.cors_origins.split(",") if item.strip()]

@@ -19,5 +19,7 @@ class Video(Base):
     preview_storage_key: Mapped[str | None] = mapped_column(String(255), nullable=True)
     tracking_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)
     crowd_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    heatmap_analysis: Mapped[dict | None] = mapped_column(JSON, nullable=True)
+    zones: Mapped[list["MonitoringZone"]] = relationship(back_populates="video", cascade="all, delete-orphan", passive_deletes=True)
     @property
     def has_annotated_preview(self) -> bool: return self.preview_storage_key is not None

@@ -4,6 +4,7 @@ from pydantic import BaseModel, ConfigDict
 from app.models.video import VideoStatus
 from app.schemas.tracking import TrackingAnalysis
 from app.schemas.crowd import CrowdAnalysis
+from app.schemas.spatial import Heatmap
 class VideoResponse(BaseModel):
     model_config=ConfigDict(from_attributes=True)
     id: UUID; original_filename: str; content_type: str; file_size: int; status: VideoStatus; duration_seconds: float|None; width: int|None; height: int|None; fps: float|None; frame_count: int|None; error_message: str|None; created_at: datetime; processing_started_at: datetime|None; processing_completed_at: datetime|None
@@ -12,3 +13,4 @@ class VideoResponse(BaseModel):
     has_annotated_preview: bool = False
     tracking_analysis: TrackingAnalysis | None = None
     crowd_analysis: CrowdAnalysis | None = None
+    heatmap_analysis: Heatmap | None = None

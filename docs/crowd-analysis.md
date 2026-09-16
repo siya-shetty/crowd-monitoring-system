@@ -1,5 +1,10 @@
 # Phase 6: crowd counting and image-space analysis
 
+Phase 7 extends these unchanged crowd formulas with
+[observation heatmaps and monitoring zones](spatial-analysis.md). Its zone count
+uses foot-point membership; the Phase 6 whole-frame box-union occupancy remains
+separate. No alerts or risk scoring are added.
+
 ## Definitions and mathematics
 
 **Observed crowd count** is the number of simultaneous active anonymous person

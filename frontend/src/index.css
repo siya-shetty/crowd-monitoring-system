@@ -13,3 +13,16 @@
 .tracking-table table { width: 100%; text-align: left; }
 .tracking-results select { color: inherit; background: #0b1822; padding: 8px; border: 1px solid #23404a; border-radius: 6px; }
 .video-row > div { min-width: 0; flex: 1; }
+/* Spatial overlays share one source-aspect rectangle at every viewport size. */
+.spatial-canvas { position: relative; width: 100%; overflow: hidden; background: #102334; outline: 1px solid #2b4355; }
+.spatial-canvas > img, .spatial-canvas > svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.spatial-canvas > img { object-fit: fill; }
+.spatial-controls { display: flex; flex-wrap: wrap; align-items: center; gap: .75rem; margin: 1rem 0; }
+.spatial-controls label { display: flex; align-items: center; gap: .4rem; }
+.spatial-results button { padding: .5rem .8rem; border: 1px solid #2b4355; border-radius: .4rem; }
+.spatial-results button[aria-pressed="true"] { border-color: #2dd4bf; color: #2dd4bf; }
+.spatial-results button:disabled { opacity: .5; cursor: not-allowed; }
+.zone-editor { border: 1px solid #2b4355; padding: 1rem; margin: 1rem 0; min-width: 0; }
+.zone-editor label { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; }
+.zone-editor input, .zone-editor textarea { color: #e2e8f0; background: #102334; border: 1px solid #526879; padding: .4rem; max-width: 100%; }
+.heatmap-legend span { display: inline-block; width: 5rem; height: .75rem; margin-right: .5rem; background: linear-gradient(to right, #102334, #fbbf24); }

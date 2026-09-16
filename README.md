@@ -4,6 +4,12 @@ A privacy-conscious crowd-monitoring project. Phases 1–6 provide a React/TypeS
 
 ## Quick start
 
+Phase 7 adds accumulated observation heatmaps and authenticated polygon monitoring
+zones. Read [spatial analysis](docs/spatial-analysis.md) for coordinate conventions,
+zone semantics, API routes and limitations. Spatial calculations use persisted
+anonymous tracking geometry without repeating YOLO or ByteTrack. Upgrade to
+Alembic head `20260916_06` before using the new backend.
+
 Prerequisites: Docker Desktop, or Node 22+ and Python 3.12+ for local services (verified on Python 3.13).
 
 Copy `.env.example` to `.env` and configure development credentials. Never commit secrets or media.
@@ -44,6 +50,8 @@ Higher `TRACK_FRAME_STRIDE` reduces CPU work but weakens continuity. Skipped fra
 | TRACK_MATCH_THRESHOLD | 0.8 | ByteTrack assignment cost threshold |
 | TRACK_BUFFER | 30 | Lost-track retention in processed tracking frames |
 | CV_ANALYSIS_TIMEOUT_SECONDS | 600 | Backend CV request timeout |
+| HEATMAP_GRID_WIDTH | 32 | Backend observation grid columns, 1–128 |
+| HEATMAP_GRID_HEIGHT | 18 | Backend observation grid rows, 1–128 |
 
 Thresholds are finite values in [0,1], with low < high; strides and buffer must be positive. See exact validation bounds in the CV configuration schema. Score fusion is enabled; appearance embeddings and re-identification are absent.
 
@@ -55,7 +63,7 @@ The UI displays detection and tracking separately, an active-track timeline, sel
 
 ## Privacy and limits
 
-No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration. No physical density, heatmaps, zones, alerts, cameras, WebSockets, or training are implemented.
+No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration; Phase 7 adds foot-point observation heatmaps and monitoring zones. No physical density, alerts, live cameras, WebSockets, or training are implemented.
 
 Uploaded footage and annotated previews remain sensitive local files even though track IDs are anonymous. They are retained until the owner deletes the video; there is no automatic retention job. Frame images are not stored in trajectories. The CV upload copy is deleted after analysis, including failures. Model weights, media, previews, logs, and secrets are excluded from Git; CV Docker context excludes runtime media and weights.
 

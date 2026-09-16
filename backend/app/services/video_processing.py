@@ -9,6 +9,7 @@ from app.core.config import get_settings
 from app.models.video import Video, VideoStatus
 from app.services.video_storage import VideoStorage
 from app.schemas.analysis import AnalysisResponse
+from app.services.spatial import refresh_heatmap, refresh_zone
 
 SUMMARY_KEYS = {"model", "confidence_threshold", "frame_stride", "sampled_frames_processed", "frames_with_people", "total_person_detections", "maximum_persons_in_sampled_frame", "average_persons_per_sampled_frame", "processing_duration_seconds"}
 
@@ -26,6 +27,9 @@ def analyze_video(database: Session, video: Video) -> Video:
         video.detection_frames = payload["frames"]
         video.tracking_analysis = payload["tracking"]
         video.crowd_analysis = payload["crowd"]
+        refresh_heatmap(video)
+        for zone in video.zones:
+            refresh_zone(video, zone)
         preview = payload.get("annotated_preview_base64")
         if preview:
             data = base64.b64decode(preview, validate=True)

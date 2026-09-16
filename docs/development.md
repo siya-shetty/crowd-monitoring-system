@@ -44,7 +44,7 @@ git diff --check
 git status --untracked-files=all
 ```
 
-Backend tests require local PostgreSQL at Alembic head `20260915_05` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses a transaction-local temporary table and never downgrades the real database.
+Backend tests require local PostgreSQL at Alembic head `20260916_06` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses transaction-local temporary tables or an isolated transactional schema and never downgrades the real database.
 
 ## Real tracking gate
 
@@ -77,3 +77,16 @@ Anonymous labels only describe continuity inside one analyzed video. `distinct_t
 ## Phase 6 verification
 
 See [crowd analysis](crowd-analysis.md#verification) for deterministic tests, the real CPU crowd gate, and the required browser workflow. Start or restart both services after deploying Phase 6; the backend requires the new crowd response contract.
+
+## Phase 7 verification
+
+Spatial math tests run in the backend suite; the CV wire contract is unchanged.
+Restart the backend after migrating; no new inference dependencies are required.
+Use the Spatial Analysis disclosure in `/videos`. Existing videos with tracking
+can use “Generate heatmap from stored tracking”; zones can be created after upload.
+See [spatial verification](spatial-analysis.md#verification) for the independent
+real-data oracle, CPU benchmark and complete browser gate.
+
+For backend tests in Docker, mount the repository read-only and run from its
+backend directory: the existing contract-mirror tests also read CV source files,
+which are intentionally absent from the standalone backend production image.

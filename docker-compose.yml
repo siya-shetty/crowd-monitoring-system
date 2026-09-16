@@ -20,6 +20,8 @@ services:
       VIDEO_STORAGE_PATH: /data/videos
       CV_SERVICE_URL: http://cv-service:8001
       CV_ANALYSIS_TIMEOUT_SECONDS: ${CV_ANALYSIS_TIMEOUT_SECONDS:-600}
+      HEATMAP_GRID_WIDTH: ${HEATMAP_GRID_WIDTH:-32}
+      HEATMAP_GRID_HEIGHT: ${HEATMAP_GRID_HEIGHT:-18}
     ports: ["8000:8000"]
     depends_on:
       postgres: {condition: service_healthy}
