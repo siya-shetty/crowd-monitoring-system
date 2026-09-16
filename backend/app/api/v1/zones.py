@@ -69,6 +69,8 @@ def update_zone(video_id: UUID, zone_id: UUID, payload: ZoneUpdate, database: Da
     for key, value in payload.model_dump(mode="json", exclude_unset=True).items():
         setattr(zone, key, value)
     refresh_zone(video, zone)
+    from app.services.alerts import rebuild_zone_rules
+    rebuild_zone_rules(database, video, zone)
     database.commit()
     database.refresh(zone)
     return zone
@@ -77,5 +79,8 @@ def update_zone(video_id: UUID, zone_id: UUID, payload: ZoneUpdate, database: Da
 @router.delete("/zones/{zone_id}", status_code=204)
 def delete_zone(video_id: UUID, zone_id: UUID, database: DatabaseSession, user: CurrentUser):
     locked_video(database, user, video_id)
+    from app.models.alert import AlertRule
+    if database.scalar(select(AlertRule.id).where(AlertRule.zone_id == zone_id, AlertRule.video_id == video_id).limit(1)):
+        raise HTTPException(409, 'Delete referencing alert rules before deleting this zone; historical events are retained')
     database.delete(zone_for(database, video_id, zone_id))
     database.commit()

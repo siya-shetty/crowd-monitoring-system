@@ -8,7 +8,7 @@ Phase 7 adds accumulated observation heatmaps and authenticated polygon monitori
 zones. Read [spatial analysis](docs/spatial-analysis.md) for coordinate conventions,
 zone semantics, API routes and limitations. Spatial calculations use persisted
 anonymous tracking geometry without repeating YOLO or ByteTrack. Upgrade to
-Alembic head `20260916_06` before using the new backend.
+Alembic head `20260916_07` before using the new backend.
 
 Prerequisites: Docker Desktop, or Node 22+ and Python 3.12+ for local services (verified on Python 3.13).
 
@@ -63,7 +63,7 @@ The UI displays detection and tracking separately, an active-track timeline, sel
 
 ## Privacy and limits
 
-No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration; Phase 7 adds foot-point observation heatmaps and monitoring zones. No physical density, alerts, live cameras, WebSockets, or training are implemented.
+No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration; Phase 7 adds foot-point observation heatmaps and monitoring zones. No physical density, live cameras, WebSockets, or training are implemented.
 
 Uploaded footage and annotated previews remain sensitive local files even though track IDs are anonymous. They are retained until the owner deletes the video; there is no automatic retention job. Frame images are not stored in trajectories. The CV upload copy is deleted after analysis, including failures. Model weights, media, previews, logs, and secrets are excluded from Git; CV Docker context excludes runtime media and weights.
 
@@ -72,3 +72,8 @@ Processing remains synchronous and memory usage grows with observations; use sho
 ## Crowd analysis
 
 Phase 6 adds observed crowd counts, rectangle-union image occupancy, normalized center concentration, configurable count categories, and descriptive trends. See [crowd analysis definitions, configuration, and limitations](docs/crowd-analysis.md). Results are stored in nullable versioned crowd_analysis JSON with migration 20260915_05. Old videos remain readable; newly uploaded videos receive crowd analytics.
+
+
+## Operational alert rules
+
+Phase 8 adds deterministic retrospective alert rules, historical evidence and a categorical operational risk summary. Configure rules on the video page and browse owned history on /alerts. Read [alert engine](docs/alert-engine.md) for configuration, continuity, history retention and limitations. No rule changes rerun computer vision.

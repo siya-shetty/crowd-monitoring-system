@@ -38,6 +38,11 @@ def get_preview(video_id:UUID,database:DatabaseSession,user:CurrentUser)->FileRe
     return FileResponse(path, media_type="image/jpeg")
 @router.delete("/{video_id}",status_code=204)
 def delete_video(video_id:UUID,database:DatabaseSession,user:CurrentUser)->None:
-    video=owned(database,user,video_id); VideoStorage().delete(video.storage_key)
+    from app.api.v1.zones import locked_video
+    from app.models.alert import AlertRule
+    from sqlalchemy import delete
+    video=locked_video(database,user,video_id)
+    database.execute(delete(AlertRule).where(AlertRule.video_id == video_id))
+    VideoStorage().delete(video.storage_key)
     if video.preview_storage_key: VideoStorage().delete(video.preview_storage_key)
     database.delete(video); database.commit()

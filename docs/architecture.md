@@ -56,3 +56,7 @@ video-owned monitoring-zones table. The frontend uses normalized SVG overlays,
 an authenticated preview and persisted zone summaries/timelines. Read the
 [spatial contract and design decisions](spatial-analysis.md), including inactive
 zone semantics, overlapping zones and deferred occupancy/dwell metrics.
+
+## Phase 8 extension
+
+The backend alert engine consumes persisted crowd and zone frames, segments qualifying intervals and transactionally stores bounded evidence. Video row locks serialize rule and spatial writes. Rule deletion preserves snapshot history; video deletion removes it. Read [alert engine](alert-engine.md) for contracts and operational risk semantics.

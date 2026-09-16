@@ -26,3 +26,14 @@
 .zone-editor label { display: flex; flex-wrap: wrap; gap: .5rem; margin: .6rem 0; }
 .zone-editor input, .zone-editor textarea { color: #e2e8f0; background: #102334; border: 1px solid #526879; padding: .4rem; max-width: 100%; }
 .heatmap-legend span { display: inline-block; width: 5rem; height: .75rem; margin-right: .5rem; background: linear-gradient(to right, #102334, #fbbf24); }
+.alert-form { display: grid; gap: 12px; max-width: 650px; margin: 20px 0; } .alert-form label { display: grid; gap: 5px; } .alert-rule, .alert-event { padding: 14px; margin: 12px 0; overflow-wrap: anywhere; } .alert-results select, .alert-results input, .alert-form input { max-width: 100%; }
+.alert-results h3 { font-size: 1.25rem; font-weight: 650; margin-bottom: .6rem; }
+.alert-event h4 { font-weight: 650; margin-bottom: .6rem; }
+.alert-event p { margin: .35rem 0; color: #bccbdb; }
+.alert-event summary { cursor: pointer; color: #5eead4; margin-top: .7rem; }
+.alert-form input, .alert-form select, [aria-label="Alert history"] select { background: #102334; color: #e2e8f0; border: 1px solid #526879; padding: .45rem; border-radius: 5px; }
+[aria-label="Alert history"] > label { display: inline-flex; flex-wrap: wrap; align-items: center; gap: .5rem; margin: .75rem 1rem .5rem 0; }
+.alert-rule button { margin: .3rem; padding: .3rem .5rem; border: 1px solid #526879; border-radius: 5px; }
+.alert-form button { padding: .5rem; border: 1px solid #526879; border-radius: 5px; }
+.alerts-page .page-heading { display: block; }
+.alerts-page .page-heading h1 { margin: .5rem 0; }

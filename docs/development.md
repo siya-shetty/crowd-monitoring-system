@@ -44,7 +44,7 @@ git diff --check
 git status --untracked-files=all
 ```
 
-Backend tests require local PostgreSQL at Alembic head `20260916_06` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses transaction-local temporary tables or an isolated transactional schema and never downgrades the real database.
+Backend tests require local PostgreSQL at Alembic head `20260916_07` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses transaction-local temporary tables or an isolated transactional schema and never downgrades the real database.
 
 ## Real tracking gate
 
@@ -72,7 +72,7 @@ Compose forwards YOLO/tracker and crowd count threshold configuration. Model wei
 
 ## Privacy and quality
 
-Anonymous labels only describe continuity inside one analyzed video. `distinct_track_ids != guaranteed unique real-world people`. Occlusions, crowded scenes, misses, ID switches, fragmentation, exits/re-entry, camera motion and frame sampling cause errors. Confidence is a detector score, not measured tracking accuracy. Normalized center trajectories are not calibrated distances or speeds. No identity, face, demographic, re-identification, or later-phase alerting features are present.
+Anonymous labels only describe continuity inside one analyzed video. `distinct_track_ids != guaranteed unique real-world people`. Occlusions, crowded scenes, misses, ID switches, fragmentation, exits/re-entry, camera motion and frame sampling cause errors. Confidence is a detector score, not measured tracking accuracy. Normalized center trajectories are not calibrated distances or speeds. No identity, face, demographic, re-identification, or predictive alerting features are present.
 
 ## Phase 6 verification
 
@@ -90,3 +90,8 @@ real-data oracle, CPU benchmark and complete browser gate.
 For backend tests in Docker, mount the repository read-only and run from its
 backend directory: the existing contract-mirror tests also read CV source files,
 which are intentionally absent from the standalone backend production image.
+
+
+## Phase 8 verification
+
+Upgrade Alembic to head and restart the backend before browser testing. Run all backend tests, including test_alert_engine.py, test_alerts.py and test_alert_migration.py. The alert lifecycle test forbids inference after upload. Frontend AlertResults tests exercise dynamic configuration and history. See [alert-engine.md](alert-engine.md) for the real-video gate and retained-history semantics.

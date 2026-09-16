@@ -9,7 +9,7 @@ export class ApiError extends Error { status: number; constructor(status: number
 export function getStoredToken(): string | null { return localStorage.getItem(tokenKey) }
 export function storeToken(token: string): void { localStorage.setItem(tokenKey, token) }
 export function clearStoredToken(): void { localStorage.removeItem(tokenKey) }
-async function request<T>(path: string, init: RequestInit = {}, authenticated = false): Promise<T> {
+export async function request<T>(path: string, init: RequestInit = {}, authenticated = false): Promise<T> {
   const headers = new Headers(init.headers); if (!(init.body instanceof FormData)) headers.set('Content-Type', 'application/json')
   const token = authenticated ? getStoredToken() : null
   if (token) headers.set('Authorization', `Bearer ${token}`)
