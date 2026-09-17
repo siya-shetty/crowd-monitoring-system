@@ -10,7 +10,7 @@ export function getStoredToken(): string | null { return localStorage.getItem(to
 export function storeToken(token: string): void { localStorage.setItem(tokenKey, token) }
 export function clearStoredToken(): void { localStorage.removeItem(tokenKey) }
 export async function request<T>(path: string, init: RequestInit = {}, authenticated = false): Promise<T> {
-  const headers = new Headers(init.headers); if (!(init.body instanceof FormData)) headers.set('Content-Type', 'application/json')
+  const headers = new Headers(init.headers); if (!(init.body instanceof FormData) && !(init.body instanceof Blob) && !headers.has('Content-Type')) headers.set('Content-Type', 'application/json')
   const token = authenticated ? getStoredToken() : null
   if (token) headers.set('Authorization', `Bearer ${token}`)
   const response = await fetch(`${baseUrl}${path}`, { ...init, headers })

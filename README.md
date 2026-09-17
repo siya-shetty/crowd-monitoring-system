@@ -77,3 +77,9 @@ Phase 6 adds observed crowd counts, rectangle-union image occupancy, normalized 
 ## Operational alert rules
 
 Phase 8 adds deterministic retrospective alert rules, historical evidence and a categorical operational risk summary. Configure rules on the video page and browse owned history on /alerts. Read [alert engine](docs/alert-engine.md) for configuration, continuity, history retention and limitations. No rule changes rerun computer vision.
+# Phase 9 live monitoring
+
+Browser camera monitoring is available at `/live` and `/cameras` through authenticated
+REST frame ingestion and snapshot polling. See [live monitoring](docs/live-monitoring.md)
+for setup, lifecycle, limits, privacy, and verification. Upgrade Alembic to
+`20260916_08`. Use one backend and one CV process; no Phase 10 streaming is included.

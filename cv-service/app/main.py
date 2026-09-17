@@ -4,9 +4,27 @@ from pathlib import Path
 from typing import Any
 
 import cv2
+import asyncio
+from contextlib import asynccontextmanager, suppress
 from fastapi import FastAPI, File, HTTPException, UploadFile
 
-app = FastAPI(title="Crowd Monitoring CV Service", version="0.3.0")
+@asynccontextmanager
+async def lifespan(app):
+    from app.live import reap, states
+    async def cleanup():
+        while True:
+            await asyncio.sleep(10)
+            reap()
+    task = asyncio.create_task(cleanup())
+    yield
+    task.cancel()
+    with suppress(asyncio.CancelledError):
+        await task
+    states.clear()
+
+app = FastAPI(title="Crowd Monitoring CV Service", version="0.3.0", lifespan=lifespan)
+from app.live import router as live_router
+app.include_router(live_router)
 
 
 def inspect(path: Path) -> dict[str, float | int]:

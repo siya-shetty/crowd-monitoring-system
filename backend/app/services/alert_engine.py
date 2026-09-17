@@ -11,6 +11,16 @@ def operational_risk(severities):
     return ('NORMAL', 'ELEVATED', 'HIGH', 'CRITICAL')[max((rank[s] for s in severities), default=0)]
 
 
+def condition_details(rule):
+    """Canonical metric/threshold selection shared by finite and live intervals."""
+    kind, cfg = rule['rule_type'], rule['configuration']
+    metric = ('active_tracks_in_zone' if rule['scope'] == 'ZONE' else
+        'crowd_level' if kind == 'CROWD_LEVEL_AT_LEAST' else
+        'crowd_count_increase' if kind == 'SUDDEN_CROWD_INCREASE' else 'observed_crowd_count')
+    threshold = cfg.get('threshold', cfg.get('minimum_presence_count', cfg.get('increase_count', cfg.get('minimum_level'))))
+    return metric, threshold
+
+
 def evaluate(rule: RuleCreate, raw_frames: list[dict], zone_name=None):
     """Sort input, reject ambiguous timestamps, and emit bounded historical intervals.
 
@@ -27,10 +37,7 @@ def evaluate(rule: RuleCreate, raw_frames: list[dict], zone_name=None):
     gap = cfg['maximum_gap_seconds']
     duration = cfg['minimum_duration_seconds']
     kind = rule.rule_type
-    metric = ('active_tracks_in_zone' if rule.scope == 'ZONE' else
-              'crowd_level' if kind == 'CROWD_LEVEL_AT_LEAST' else
-              'crowd_count_increase' if kind == 'SUDDEN_CROWD_INCREASE' else 'observed_crowd_count')
-    threshold = cfg.get('threshold', cfg.get('minimum_presence_count', cfg.get('increase_count', cfg.get('minimum_level'))))
+    metric, threshold = condition_details(rule.model_dump())
     compare = lambda value: LEVELS.index(value) if isinstance(value, str) else value
     times = [f.timestamp_seconds for f in frames]
     events = []

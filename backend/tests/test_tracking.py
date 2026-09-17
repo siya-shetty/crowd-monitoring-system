@@ -119,7 +119,7 @@ def test_migration_head_and_contract_mirror():
     root = Path(__file__).resolve().parents[2]
     assert (root / 'cv-service/app/tracking/schemas.py').read_bytes() == (root / 'backend/app/schemas/tracking.py').read_bytes()
     with SessionLocal() as db:
-        assert db.execute(text('SELECT version_num FROM alembic_version')).scalar_one() == '20260916_07'
+        assert db.execute(text('SELECT version_num FROM alembic_version')).scalar_one() == '20260916_08'
         assert db.execute(text("SELECT is_nullable FROM information_schema.columns WHERE table_name='videos' AND column_name='tracking_analysis'")).scalar_one() == 'YES'
 
 

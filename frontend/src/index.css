@@ -37,3 +37,12 @@
 .alert-form button { padding: .5rem; border: 1px solid #526879; border-radius: 5px; }
 .alerts-page .page-heading { display: block; }
 .alerts-page .page-heading h1 { margin: .5rem 0; }
+
+.live-page { display: grid; gap: 1.25rem; }
+.live-preview { position: relative; width: 100%; max-width: 960px; background: #0b1220; overflow: hidden; border-radius: 12px; }
+.live-preview video, .live-preview svg { position: absolute; width: 100%; height: 100%; inset: 0; }
+.live-preview svg { cursor: crosshair; }
+.live-metrics { display: grid; grid-template-columns: repeat(auto-fit,minmax(150px,1fr)); gap: 1rem; }
+.live-metrics strong { display: block; font-size: 1.6rem; }
+.live-page pre { max-height: 300px; overflow: auto; }
+.live-page button { margin: .3rem; }

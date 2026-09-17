@@ -1,4 +1,6 @@
 import logging
+from contextlib import asynccontextmanager
+from starlette.concurrency import run_in_threadpool
 from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import JSONResponse
@@ -8,7 +10,18 @@ from app.core.config import get_settings
 from app.core.logging import configure_logging
 from app.services.health import health_payload
 configure_logging(); settings = get_settings(); logger = logging.getLogger(__name__)
-app = FastAPI(title="Crowd Monitoring API", version="0.1.0")
+@asynccontextmanager
+async def lifespan(app):
+    from app.db.session import SessionLocal
+    from app.services.live import reconcile
+    def recover():
+        with SessionLocal() as database:
+            reconcile(database)
+    await run_in_threadpool(recover)
+    yield
+    await run_in_threadpool(recover)
+
+app = FastAPI(title="Crowd Monitoring API", version="0.1.0", lifespan=lifespan)
 app.add_middleware(CORSMiddleware, allow_origins=settings.cors_origin_list, allow_credentials=True, allow_methods=["*"], allow_headers=["*"])
 @app.exception_handler(RequestValidationError)
 async def invalid_request(_: Request, exc: RequestValidationError) -> JSONResponse:

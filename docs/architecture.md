@@ -60,3 +60,10 @@ zone semantics, overlapping zones and deferred occupancy/dwell metrics.
 ## Phase 8 extension
 
 The backend alert engine consumes persisted crowd and zone frames, segments qualifying intervals and transactionally stores bounded evidence. Video row locks serialize rule and spatial writes. Rule deletion preserves snapshot history; video deletion removes it. Read [alert engine](alert-engine.md) for contracts and operational risk semantics.
+# Live session architecture
+
+Phase 9 adds camera-owned configuration and persistent live sessions independently
+of uploaded videos. Browser binary frames pass through backend ownership checks to
+the CV worker's session-local ByteTrack; backend geometry and incremental rules
+produce persisted REST snapshots/events. See [live monitoring](live-monitoring.md)
+for the complete contract, bounds, restart recovery, and single-process limitation.

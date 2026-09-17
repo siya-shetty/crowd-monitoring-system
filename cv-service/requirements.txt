@@ -8,3 +8,4 @@ opencv-python-headless==4.11.0.86
 opencv-python==4.11.0.86
 ultralytics==8.4.152
 lap==0.5.13
+Pillow==12.3.0

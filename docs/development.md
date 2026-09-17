@@ -95,3 +95,10 @@ which are intentionally absent from the standalone backend production image.
 ## Phase 8 verification
 
 Upgrade Alembic to head and restart the backend before browser testing. Run all backend tests, including test_alert_engine.py, test_alerts.py and test_alert_migration.py. The alert lifecycle test forbids inference after upload. Frontend AlertResults tests exercise dynamic configuration and history. See [alert-engine.md](alert-engine.md) for the real-video gate and retained-history semantics.
+# Phase 9 development
+
+Run `alembic upgrade head` for revision `20260916_08`, then restart backend and CV
+services using one worker each. `/live` needs HTTPS or localhost and browser camera
+permission. See [live monitoring](live-monitoring.md) for configuration and the
+real-frame fallback script. Existing references below to earlier migration heads
+describe those earlier phases; the current required head is `20260916_08`.
