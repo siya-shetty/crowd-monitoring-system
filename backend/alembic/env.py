@@ -9,7 +9,7 @@ from app.db.base import Base
 from app.models import User
 
 config = context.config
-config.set_main_option("sqlalchemy.url", get_settings().database_url)
+config.set_main_option("sqlalchemy.url", get_settings().database_url.replace('%', '%%'))
 target_metadata = Base.metadata
 
 def run_migrations_offline() -> None:

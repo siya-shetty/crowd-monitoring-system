@@ -71,3 +71,18 @@ def test_video_upload_access_control_and_cleanup(monkeypatch) -> None:
     assert client.get(f"/api/v1/videos/{uuid.uuid4()}", headers=owner).status_code == 404
     assert client.delete(f"/api/v1/videos/{payload['id']}", headers=owner).status_code == 204
     assert client.get("/api/v1/videos", headers=owner).json() == []
+
+
+def test_video_library_is_bounded_and_supports_offset():
+    owner = register_and_login()
+    owner_id = uuid.UUID(client.get('/api/v1/auth/me', headers=owner).json()['id'])
+    with SessionLocal() as database:
+        database.add_all([Video(owner_id=owner_id, original_filename=f'{i}.mp4',
+            storage_key=f'{uuid.uuid4()}.mp4', content_type='video/mp4', file_size=1)
+            for i in range(21)])
+        database.commit()
+    first = client.get('/api/v1/videos', headers=owner).json()
+    second = client.get('/api/v1/videos?offset=20', headers=owner).json()
+    assert len(first) == 20 and len(second) == 1
+    assert {item['id'] for item in first}.isdisjoint(item['id'] for item in second)
+    assert client.get('/api/v1/videos?offset=-1', headers=owner).status_code == 422

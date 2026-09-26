@@ -35,5 +35,9 @@ async def unhandled_error(_: Request, exc: Exception) -> JSONResponse:
     logger.exception("Unhandled request error", exc_info=exc)
     return JSONResponse(status_code=500, content={"detail":"Internal server error"})
 @app.get("/health", tags=["system"])
-def health() -> dict[str, str]: return health_payload()
+def health():
+    payload = health_payload()
+    if payload['database'] != 'available':
+        return JSONResponse(status_code=503, content=payload | {'status': 'unavailable'})
+    return payload
 app.include_router(api_router)

@@ -17,6 +17,6 @@ def create_access_token(user_id: UUID) -> str:
 def decode_access_token(token: str) -> UUID | None:
     settings = get_settings()
     try:
-        subject = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm]).get("sub")
+        subject = jwt.decode(token, settings.jwt_secret_key, algorithms=[settings.jwt_algorithm], options={"require": ["exp", "sub"]}).get("sub")
         return UUID(subject) if subject else None
     except (jwt.InvalidTokenError, ValueError, TypeError): return None

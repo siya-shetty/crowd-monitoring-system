@@ -1,7 +1,7 @@
 from typing import Annotated
 from uuid import UUID
 from pathlib import Path
-from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile, status, Query
 from fastapi.responses import FileResponse
 from sqlalchemy import select
 from app.api.v1.dependencies import DatabaseSession, get_current_active_user
@@ -26,7 +26,7 @@ def upload_video(file: Annotated[UploadFile,File(...)], database: DatabaseSessio
     except Exception: database.rollback(); storage.delete(key); raise
     return analyze_video(database,video)
 @router.get("",response_model=list[VideoResponse])
-def list_videos(database:DatabaseSession,user:CurrentUser)->list[Video]: return list(database.scalars(select(Video).where(Video.owner_id==user.id).order_by(Video.created_at.desc())))
+def list_videos(database:DatabaseSession,user:CurrentUser, offset:int=Query(default=0, ge=0))->list[Video]: return list(database.scalars(select(Video).where(Video.owner_id==user.id).order_by(Video.created_at.desc(), Video.id).offset(offset).limit(20)))
 @router.get("/{video_id}",response_model=VideoResponse)
 def get_video(video_id:UUID,database:DatabaseSession,user:CurrentUser)->Video: return owned(database,user,video_id)
 @router.get("/{video_id}/preview")

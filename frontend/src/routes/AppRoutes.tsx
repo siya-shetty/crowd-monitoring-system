@@ -11,5 +11,5 @@ import { LivePage } from '../pages/LivePage'
 import { AnalyticsPage } from '../pages/AnalyticsPage'
 import { EventsPage } from '../pages/EventsPage'
 import { IncidentsPage } from '../pages/IncidentsPage'
-const pages=[['settings','Settings','Manage account, notification, and system preferences when authentication is implemented.']] as const
+const pages=[['settings','Settings','Settings controls are not available in this release. Deployment configuration is managed by the operator.']] as const
 export function AppRoutes(){return <Routes><Route path="/login" element={<LoginPage/>}/><Route path="/register" element={<RegisterPage/>}/><Route element={<ProtectedRoute/>}><Route element={<AppShell/>}><Route path="/dashboard" element={<DashboardPage/>}/><Route path="/videos" element={<VideosPage/>}/><Route path="/alerts" element={<AlertsPage/>}/><Route path="/events" element={<EventsPage/>}/><Route path="/incidents" element={<IncidentsPage/>}/><Route path="/analytics" element={<AnalyticsPage/>}/><Route path="/live" element={<LivePage/>}/><Route path="/cameras" element={<LivePage/>}/>{pages.map(([path,title,description])=><Route key={path} path={`/${path}`} element={<PlaceholderPage title={title} description={description}/>}/>)}</Route></Route><Route path="*" element={<Navigate to="/dashboard" replace/>}/></Routes>}

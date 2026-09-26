@@ -44,7 +44,7 @@ git diff --check
 git status --untracked-files=all
 ```
 
-Backend tests require local PostgreSQL at Alembic head `20260916_07` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses transaction-local temporary tables or an isolated transactional schema and never downgrades the real database.
+Backend tests require local PostgreSQL at Alembic head `20260926_09` and create disposable test users. CV unit tests use deterministic fake tracker results; they do not load YOLO. Backend migration coverage uses transaction-local temporary tables or an isolated transactional schema and never downgrades the real database.
 
 ## Real tracking gate
 
@@ -101,10 +101,10 @@ Run `alembic upgrade head` for revision `20260916_08`, then restart backend and 
 services using one worker each. `/live` needs HTTPS or localhost and browser camera
 permission. See [live monitoring](live-monitoring.md) for configuration and the
 real-frame fallback script. Existing references below to earlier migration heads
-describe those earlier phases; the current required head is `20260916_08`.
+describe those earlier phases; the current required head is `20260926_09`.
 
 ## Phase 10 live transport
 
 See [real-time WebSockets](realtime-websockets.md) for authenticated session streams, bounded
 delivery, dashboard recovery, verification and single-worker deployment limits.
-REST remains authoritative; Alembic head remains `20260916_08`.
+REST remains authoritative; current Alembic head is `20260926_09`.

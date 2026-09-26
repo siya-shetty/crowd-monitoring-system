@@ -1,5 +1,5 @@
 from uuid import UUID
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter, HTTPException, Query
 from pydantic import ValidationError
 from sqlalchemy import select, func
 from app.api.v1.dependencies import DatabaseSession
@@ -95,15 +95,15 @@ def events_query(user, video_id=None, severity=None, rule_type=None, zone_id=Non
 
 
 @router.get('/alerts', response_model=list[EventResponse])
-def global_events(database: DatabaseSession, user: CurrentUser, severity: Severity | None = None, rule_type: RuleType | None = None):
-    return list(database.scalars(events_query(user, severity=severity, rule_type=rule_type)))
+def global_events(database: DatabaseSession, user: CurrentUser, severity: Severity | None = None, rule_type: RuleType | None = None, offset: int = Query(default=0, ge=0)):
+    return list(database.scalars(events_query(user, severity=severity, rule_type=rule_type).offset(offset).limit(200)))
 
 
 @router.get(base+'/alerts', response_model=list[EventResponse])
 def video_events(video_id: UUID, database: DatabaseSession, user: CurrentUser, severity: Severity | None = None,
-                 rule_type: RuleType | None = None, zone_id: UUID | None = None, rule_id: UUID | None = None):
+                 rule_type: RuleType | None = None, zone_id: UUID | None = None, rule_id: UUID | None = None, offset: int = Query(default=0, ge=0)):
     owned(database, user, video_id)
-    return list(database.scalars(events_query(user, video_id, severity, rule_type, zone_id, rule_id)))
+    return list(database.scalars(events_query(user, video_id, severity, rule_type, zone_id, rule_id).offset(offset).limit(200)))
 
 
 @router.get(base+'/alerts/{alert_id}', response_model=EventResponse)

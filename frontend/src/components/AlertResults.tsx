@@ -9,7 +9,7 @@ export function AlertEvents({events,videoNames={}}:{events:AlertEvent[];videoNam
   const [kind,setKind]=useState('')
   const filtered=events.filter(e=>(!severity||e.severity===severity)&&(!kind||e.rule_type===kind))
   return <section aria-label="Alert history">
-    <h4>Historical alert events</h4>
+    <h4>Historical alert events</h4><p>Latest 200 events; summary totals include all stored events.</p>
     <label>Filter severity <select value={severity} onChange={e=>setSeverity(e.target.value)}><option value="">All severities</option>{['INFO','WARNING','CRITICAL'].map(s=><option key={s}>{s}</option>)}</select></label>
     <label>Filter rule type <select value={kind} onChange={e=>setKind(e.target.value)}><option value="">All rule types</option>{ruleTypes.map(t=><option key={t} value={t}>{typeLabels[t]}</option>)}</select></label>
     {!filtered.length&&<p>No alert events match. This does not establish safety.</p>}

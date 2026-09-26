@@ -3,6 +3,7 @@
 .test-tmp
 __pycache__
 .env
+.env.*
 *.pt
 *.onnx
 *.log

@@ -16,12 +16,14 @@ export function VideosPage() {
   const [videos, setVideos] = useState<Video[]>([])
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+  const [libraryLoading, setLibraryLoading] = useState(true)
   const input = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
     let active = true
     void listVideos().then(items => { if (active) setVideos(items) })
       .catch(() => { if (active) setError('Unable to load your video library.') })
+      .finally(() => { if (active) setLibraryLoading(false) })
     return () => { active = false }
   }, [])
 
@@ -41,7 +43,7 @@ export function VideosPage() {
     setError('')
     try {
       const uploaded = await uploadVideo(file)
-      setVideos(current => [uploaded, ...current])
+      setVideos(current => [uploaded, ...current].slice(0, 20))
       setFile(null)
       if (input.current) input.current.value = ''
     } catch (failure) {
@@ -77,6 +79,9 @@ export function VideosPage() {
     </section>
     <section className="video-library">
       <h2>Your video library</h2>
+      <p>Latest 20 uploads. Older records remain available through the API.</p>
+      {libraryLoading && <p role="status">Loading video library...</p>}
+      {!libraryLoading && !error && !videos.length && <p>No uploaded videos yet.</p>}
       {videos.map(video => <article className="card video-row" key={video.id}>
         <FileVideo/>
         <div>

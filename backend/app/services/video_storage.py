@@ -1,4 +1,3 @@
-import shutil
 import uuid
 from pathlib import Path
 from fastapi import UploadFile
@@ -11,10 +10,23 @@ class VideoStorage:
         if suffix not in ALLOWED_EXTENSIONS or upload.content_type not in ALLOWED_TYPES: raise ValueError("Unsupported video format")
         key=f"{uuid.uuid4()}{suffix}"; destination=(self.root/key).resolve()
         if self.root not in destination.parents: raise ValueError("Invalid upload")
-        with destination.open("wb") as output: shutil.copyfileobj(upload.file, output)
-        size=destination.stat().st_size
-        if size==0: destination.unlink(missing_ok=True); raise ValueError("Video file is empty")
-        if size>get_settings().max_upload_size_bytes: destination.unlink(missing_ok=True); raise ValueError("Video exceeds the configured upload limit")
+        size = 0
+        try:
+            with destination.open("xb") as output:
+                while chunk := upload.file.read(1024 * 1024):
+                    size += len(chunk)
+                    if size > get_settings().max_upload_size_bytes:
+                        raise ValueError("Video exceeds the configured upload limit")
+                    output.write(chunk)
+            if size == 0:
+                raise ValueError("Video file is empty")
+        except Exception:
+            destination.unlink(missing_ok=True)
+            raise
         return key,size
-    def path_for(self,key:str)->Path: return (self.root/Path(key).name).resolve()
+    def path_for(self,key:str)->Path:
+        path = (self.root / key).resolve()
+        if not key or '/' in key or '\\' in key or path.parent != self.root:
+            raise ValueError("Invalid storage key")
+        return path
     def delete(self,key:str)->None: self.path_for(key).unlink(missing_ok=True)

@@ -1,6 +1,8 @@
 # Crowd Monitoring and Crowd Safety System
 
-A privacy-conscious crowd-monitoring project. Phases 1–6 provide a React/TypeScript Sentinel Grid interface, JWT authentication, PostgreSQL persistence, protected video uploads, YOLO11 person detection, anonymous within-video ByteTrack tracking, and image-space crowd analytics.
+A privacy-conscious crowd-monitoring application implemented through Phases 1-12, with Phase 13 release hardening. It includes React/TypeScript, FastAPI, PostgreSQL, JWT authentication, protected video analysis with YOLO11 and anonymous ByteTrack tracking, zones, rule-derived alerts, browser live monitoring with WebSocket metrics and REST fallback, analytics, events, incidents, and CSV reporting.
+
+Before Phase 14, follow [deployment readiness](docs/deployment-readiness.md). No deployment is performed by Phase 13.
 
 ## Quick start
 
@@ -8,7 +10,7 @@ Phase 7 adds accumulated observation heatmaps and authenticated polygon monitori
 zones. Read [spatial analysis](docs/spatial-analysis.md) for coordinate conventions,
 zone semantics, API routes and limitations. Spatial calculations use persisted
 anonymous tracking geometry without repeating YOLO or ByteTrack. Upgrade to
-Alembic head `20260916_07` before using the new backend.
+Alembic head `20260926_09` before using the new backend.
 
 Prerequisites: Docker Desktop, or Node 22+ and Python 3.12+ for local services (verified on Python 3.13).
 
@@ -63,11 +65,11 @@ The UI displays detection and tracking separately, an active-track timeline, sel
 
 ## Privacy and limits
 
-No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration; Phase 7 adds foot-point observation heatmaps and monitoring zones. No physical density, live cameras, WebSockets, or training are implemented.
+No facial recognition, face embeddings, biometrics, demographic inference, identity database, re-identification, or cross-video matching. Phase 6 adds anonymous crowd counts and image-space occupancy/concentration; Phase 7 adds foot-point observation heatmaps and monitoring zones. No calibrated physical density, identity recognition, or model training is implemented. Live browser cameras and WebSocket metrics are implemented.
 
 Uploaded footage and annotated previews remain sensitive local files even though track IDs are anonymous. They are retained until the owner deletes the video; there is no automatic retention job. Frame images are not stored in trajectories. The CV upload copy is deleted after analysis, including failures. Model weights, media, previews, logs, and secrets are excluded from Git; CV Docker context excludes runtime media and weights.
 
-Processing remains synchronous and memory usage grows with observations; use short development clips. Process termination may leave a processing row requiring future worker reconciliation. Ordinary CV/validation/timeouts become safe failed states. There is no retry queue, automatic recovery worker, or large-video scalability guarantee. JWT localStorage is retained from Phase 2 and should be replaced with secure sessions before production. Dashboard values remain explicitly demo data.
+Processing remains synchronous and memory usage grows with observations; use short development clips. Process termination may leave a processing row requiring future worker reconciliation. Ordinary CV/validation/timeouts become safe failed states. There is no retry queue, automatic recovery worker, or large-video scalability guarantee. JWTs remain in localStorage: protect the frontend against script injection and shared-browser access; tokens expire but have no server-side logout revocation. Dashboard values remain explicitly demo data.
 
 ## Crowd analysis
 
@@ -82,10 +84,18 @@ Phase 8 adds deterministic retrospective alert rules, historical evidence and a 
 Browser camera monitoring is available at `/live` and `/cameras` through authenticated
 REST frame ingestion and snapshot polling. See [live monitoring](docs/live-monitoring.md)
 for setup, lifecycle, limits, privacy, and verification. Upgrade Alembic to
-`20260916_08`. Use one backend and one CV process; no Phase 10 streaming is included.
+`20260916_08`. Use one backend and one CV process; Phase 10 adds WebSocket metric delivery.
 
 ## Phase 10 live transport
 
 See [real-time WebSockets](docs/realtime-websockets.md) for authenticated session streams, bounded
 delivery, dashboard recovery, verification and single-worker deployment limits.
-REST remains authoritative; Alembic head remains `20260916_08`.
+REST remains authoritative. The current Alembic head is `20260926_09`.
+
+## Analytics and operational reporting
+
+Phase 11 adds persisted observation analytics; see [analytics](docs/analytics.md).
+Phase 12 adds owned events, incident review and spreadsheet-safe CSV export;
+see [events and incidents](docs/events-incidents.md). Settings remains explicitly
+unavailable, and Command Center remains clearly labeled demo data; use Analytics
+and Live Monitoring for actual observations.

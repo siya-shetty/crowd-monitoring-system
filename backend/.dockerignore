@@ -4,3 +4,9 @@ pytest-cache-files-*
 __pycache__
 storage
 .env
+
+.env.*
+*.log
+*.jpg
+*.mp4
+*.pt
