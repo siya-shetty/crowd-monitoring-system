@@ -17,6 +17,7 @@ export function AlertEvents({events,videoNames={}}:{events:AlertEvent[];videoNam
       <h4>{e.rule_name} · {e.severity}</h4><p>{typeLabels[e.rule_type]} · {e.state} {e.rule_id===null?'· Deleted rule history':''}</p>
       <p>Video: {videoNames[e.video_id]??e.video_id} · {e.evidence.zone_name??'Whole video'}</p>
       <p>Condition start {e.condition_start_seconds.toFixed(2)} s · Trigger {e.trigger_seconds.toFixed(2)} s · Last qualifying observation {e.end_seconds.toFixed(2)} s</p>
+      <a href={`/incidents?source=video&alert_id=${e.id}`}>Create incident</a>
       <details><summary>Why this alert fired</summary>
         <p>{e.rule_type==='ZONE_PRESENCE'?'Presence detected in monitored zone. ':''}{e.evidence.metric}: {e.evidence.trigger_value} at trigger, against configured threshold {e.evidence.threshold}. Peak: {e.evidence.peak_value}.</p>
         <p>Required duration: {e.evidence.minimum_duration_seconds} s. Observed qualifying interval: {e.evidence.observed_duration_seconds.toFixed(2)} s. Maximum allowed observation gap: {e.evidence.maximum_gap_seconds} s. Closure: {e.evidence.closure}.</p>
