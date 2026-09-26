@@ -83,3 +83,9 @@ Browser camera monitoring is available at `/live` and `/cameras` through authent
 REST frame ingestion and snapshot polling. See [live monitoring](docs/live-monitoring.md)
 for setup, lifecycle, limits, privacy, and verification. Upgrade Alembic to
 `20260916_08`. Use one backend and one CV process; no Phase 10 streaming is included.
+
+## Phase 10 live transport
+
+See [real-time WebSockets](docs/realtime-websockets.md) for authenticated session streams, bounded
+delivery, dashboard recovery, verification and single-worker deployment limits.
+REST remains authoritative; Alembic head remains `20260916_08`.

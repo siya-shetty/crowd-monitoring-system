@@ -1,3 +1,5 @@
-# Future real-time boundary
+# Live WebSocket transport
 
-WebSocket connection management and metric broadcasting belong here in a future phase. Phase 1 does not expose WebSocket endpoints.
+See [the permanent transport documentation](../../../docs/realtime-websockets.md).
+`routes.py` handles tickets and socket lifecycle, `events.py` defines aggregate
+contracts, and `manager.py` owns bounded thread-safe latest-state mailboxes.

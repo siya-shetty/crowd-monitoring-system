@@ -67,3 +67,9 @@ of uploaded videos. Browser binary frames pass through backend ownership checks 
 the CV worker's session-local ByteTrack; backend geometry and incremental rules
 produce persisted REST snapshots/events. See [live monitoring](live-monitoring.md)
 for the complete contract, bounds, restart recovery, and single-process limitation.
+
+## Phase 10 live transport
+
+See [real-time WebSockets](realtime-websockets.md) for authenticated session streams, bounded
+delivery, dashboard recovery, verification and single-worker deployment limits.
+REST remains authoritative; Alembic head remains `20260916_08`.

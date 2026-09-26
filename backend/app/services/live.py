@@ -77,6 +77,8 @@ def finish(db, session, reason='session_stopped', failed=False):
     with registry:
         runtime.pop(session.id, None)
     db.commit()
+    from app.websocket.events import publish
+    publish(db, session)
 
 
 def reconcile(db):
@@ -162,4 +164,6 @@ def process(db, session, state, data, sequence, capture, content_type, received)
     state.sequence, state.capture, state.last_accept = sequence, capture, time.monotonic()
     # Retain aggregate observations only, never per-frame tracks or image bytes.
     state.recent.append({k:observation[k] for k in ('timestamp_seconds','observed_crowd_count','crowd_level')})
+    from app.websocket.events import publish
+    publish(db, session, transitions=True)
     return observation

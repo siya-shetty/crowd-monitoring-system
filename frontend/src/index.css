@@ -46,3 +46,14 @@
 .live-metrics strong { display: block; font-size: 1.6rem; }
 .live-page pre { max-height: 300px; overflow: auto; }
 .live-page button { margin: .3rem; }
+
+.live-page > header { display: block; height: auto; padding: 1rem 0; background: transparent; }
+.live-page > header h1 { font-size: clamp(1.6rem, 3vw, 2.2rem); margin: .5rem 0; }
+.live-page .card { min-width: 0; }
+.live-page .live-metrics p { padding: 1rem; border: 1px solid #2b4355; border-radius: 10px; margin: 0; }
+.live-page button { padding: .55rem .8rem; border: 1px solid #526879; border-radius: 6px; cursor: pointer; }
+.live-page button:disabled { opacity: .5; cursor: not-allowed; }
+.live-page button:focus-visible, .live-page summary:focus-visible { outline: 2px solid #38bdf8; outline-offset: 3px; }
+.live-page input, .live-page select { max-width: 100%; box-sizing: border-box; }
+.live-page article { border-top: 1px solid #2b4355; padding: 1rem 0; overflow-wrap: anywhere; }
+@media(max-width: 480px) { .live-page .card { padding: 14px; } .live-metrics { grid-template-columns: 1fr 1fr; gap: .5rem; } .live-metrics strong { font-size: 1.25rem; } }

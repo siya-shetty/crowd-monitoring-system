@@ -17,6 +17,7 @@ class Settings(BaseSettings):
     cv_analysis_timeout_seconds: float = Field(default=600, gt=0, le=3600)
     heatmap_grid_width: int = Field(default=32, ge=1, le=128)
     heatmap_grid_height: int = Field(default=18, ge=1, le=128)
+    live_ws_subscriber_cap: int = Field(default=4, ge=1, le=16)
     live_target_fps: float = Field(default=3, gt=0, le=10)
     live_max_frame_bytes: int = Field(default=524288, ge=1024, le=2097152)
     live_recent_observations: int = Field(default=300, ge=10, le=1000)

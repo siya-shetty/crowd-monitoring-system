@@ -102,3 +102,9 @@ services using one worker each. `/live` needs HTTPS or localhost and browser cam
 permission. See [live monitoring](live-monitoring.md) for configuration and the
 real-frame fallback script. Existing references below to earlier migration heads
 describe those earlier phases; the current required head is `20260916_08`.
+
+## Phase 10 live transport
+
+See [real-time WebSockets](realtime-websockets.md) for authenticated session streams, bounded
+delivery, dashboard recovery, verification and single-worker deployment limits.
+REST remains authoritative; Alembic head remains `20260916_08`.

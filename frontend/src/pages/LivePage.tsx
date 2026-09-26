@@ -1,3 +1,4 @@
+import { connectLive, type SocketHealth } from '../services/liveSocket'
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { ApiError, type Point } from '../services/apiClient'
 import { liveApi, sendFrame, type Camera, type CameraZone, type LiveConfig, type LiveEvent, type LiveSession } from '../services/live'
@@ -10,6 +11,8 @@ export function LivePage() {
   const [config,setConfig]=useState<LiveConfig|null>(null), [session,setSession]=useState<LiveSession|null>(null), [history,setHistory]=useState<LiveSession[]>([]), [events,setEvents]=useState<LiveEvent[]>([])
   const [active,setActive]=useState(false), [busy,setBusy]=useState(false), [error,setError]=useState(''), [notice,setNotice]=useState('Camera is off')
   const [points,setPoints]=useState<Point[]>([]), [zones,setZones]=useState<CameraZone[]>([])
+  const [health,setHealth]=useState<SocketHealth>('DISCONNECTED')
+  const [observations,setObservations]=useState<{sequence:number;count:number;occupancy:number}[]>([])
   const [aspect,setAspect]=useState(16/9)
   const video=useRef<HTMLVideoElement>(null), stream=useRef<MediaStream|null>(null), current=useRef<string|null>(null), mounted=useRef(false), generation=useRef(0)
   const upload=useRef<AbortController|null>(null), sequence=useRef(0)
@@ -24,10 +27,20 @@ export function LivePage() {
   const running=session?.status==='RUNNING'
   useEffect(()=>{
     if(!sessionId||!running)return
-    let cancelled=false, timer:ReturnType<typeof setTimeout>
-    const poll=async()=>{try{const [s,e]=await Promise.all([liveApi<LiveSession>(`/live/sessions/${sessionId}`),liveApi<LiveEvent[]>(`/live/sessions/${sessionId}/alerts`)]);if(!cancelled){setSession(s);setEvents(e);if(s.status!=='RUNNING'){release();current.current=null}}}catch{if(!cancelled)setError('Session snapshot unavailable. Stop monitoring or retry when connected.')}finally{if(!cancelled)timer=setTimeout(()=>void poll(),1000)}}
-    void poll();return()=>{cancelled=true;clearTimeout(timer)}
+    return connectLive(sessionId,state=>{
+      setSession(previous=>previous?.id===state.id&&!['STOPPED','FAILED'].includes(previous.status)?{...previous,...state}:previous)
+      setEvents(state.alerts)
+      const m=state.latest_snapshot
+      if(m)setObservations(previous=>previous.at(-1)?.sequence===m.sequence?previous:[...previous,{sequence:m.sequence,count:m.observed_crowd_count,occupancy:m.image_occupancy_ratio}].slice(-60))
+      if(state.status!=='RUNNING'){release();current.current=null}
+    },setHealth)
   },[sessionId,running,release])
+  useEffect(()=>{
+    if(!sessionId||!running||health==='CONNECTED')return
+    let cancelled=false, timer:ReturnType<typeof setTimeout>
+    const poll=async()=>{try{const [s,e]=await Promise.all([liveApi<LiveSession>(`/live/sessions/${sessionId}`),liveApi<LiveEvent[]>(`/live/sessions/${sessionId}/alerts`)]);if(!cancelled){setSession(previous=>previous?.id===s.id&&['STOPPED','FAILED'].includes(previous.status)?previous:s);setEvents(e);if(s.status!=='RUNNING'){release();current.current=null}}}catch{if(!cancelled)setError('Session snapshot unavailable. Stop monitoring or retry when connected.')}finally{if(!cancelled)timer=setTimeout(()=>void poll(),5000)}}
+    void poll();return()=>{cancelled=true;clearTimeout(timer)}
+  },[sessionId,running,release,health])
   useEffect(()=>{
     if(!sessionId||!running||!active||!config||current.current!==sessionId)return
     let cancelled=false, timer:ReturnType<typeof setTimeout>
@@ -72,14 +85,14 @@ export function LivePage() {
     const token=generation.current
     const s=await liveApi<LiveSession>(`/cameras/${cameraId}/sessions`,'POST')
     if(!mounted.current||token!==generation.current){await liveApi(`/live/sessions/${s.id}/stop`,'POST');return}
-    sequence.current=0;current.current=s.id;setSession(s);setEvents([])
+    sequence.current=0;current.current=s.id;setSession(s);setEvents([]);setObservations([])
   })
   const locked=busy||active||!!session&&['STARTING','RUNNING','STOPPING'].includes(session.status)
   const metrics=session?.latest_snapshot
-  return <div className="live-page"><header><p className="eyebrow">SENTINEL GRID / LIVE</p><h1>Live camera monitoring</h1><p>Browser camera · REST snapshots · Anonymous session-local tracking</p></header>
+  return <div className="live-page"><header><p className="eyebrow">SENTINEL GRID / LIVE</p><h1>Live camera monitoring</h1><p>Browser camera · Live metric stream · Anonymous session-local tracking</p></header>
     {error&&<p role="alert" className="card">{error}</p>}
     <section className="card"><h2>Camera sources</h2>
-      <label>Camera<select disabled={locked} value={cameraId} onChange={e=>{setCameraId(e.target.value);setPoints([]);setZones([]);setEvents([])}}><option value="">Choose camera</option>{cameras.map(c=><option value={c.id} key={c.id}>{c.name}{c.enabled?'':' (disabled)'}</option>)}</select></label>
+      <label>Camera<select disabled={locked} value={cameraId} onChange={e=>{setCameraId(e.target.value);setObservations([]);setPoints([]);setZones([]);setEvents([])}}><option value="">Choose camera</option>{cameras.map(c=><option value={c.id} key={c.id}>{c.name}{c.enabled?'':' (disabled)'}</option>)}</select></label>
       <form onSubmit={e=>{e.preventDefault();void run(async()=>{const c=await liveApi<Camera>('/cameras','POST',{name,source_type:'BROWSER'});setCameras(await liveApi<Camera[]>('/cameras'));setCameraId(c.id);setName('')})}}><label>New browser camera name<input required maxLength={100} disabled={locked} value={name} onChange={e=>setName(e.target.value)}/></label><button disabled={locked}>Register camera</button></form>
       {cameraId&&<><button disabled={locked} onClick={()=>void run(async()=>{const c=cameras.find(c=>c.id===cameraId)!;await liveApi(`/cameras/${cameraId}`,'PATCH',{enabled:!c.enabled});setCameras(await liveApi<Camera[]>('/cameras'))})}>Toggle camera enabled</button> <button disabled={locked} onClick={()=>void run(async()=>{await liveApi(`/cameras/${cameraId}`,'DELETE');const c=await liveApi<Camera[]>('/cameras');setCameras(c);setCameraId(c[0]?.id??'')})}>Delete camera and its history</button></>}
       <p>This camera belongs to your browser device. HTTPS (or localhost) and camera permission are required. Raw frames are processed transiently, not saved.</p>
@@ -89,12 +102,14 @@ export function LivePage() {
         {active&&<svg viewBox="0 0 1 1" preserveAspectRatio="none" aria-label="Draw camera zone" onClick={e=>{const p=normalizedPoint(e.clientX,e.clientY,e.currentTarget.getBoundingClientRect());if(p&&points.length<50)setPoints(v=>[...v,p])}}>{zones.filter(z=>z.active).map(z=><polygon key={z.id} points={z.polygon.map(p=>`${p.x},${p.y}`).join(' ')} fill="#38bdf833" stroke="#38bdf8" strokeWidth=".003"/>)}<polyline points={points.map(p=>`${p.x},${p.y}`).join(' ')} fill="#fbbf2422" stroke="#fbbf24" strokeWidth=".004"/>{points.map((p,i)=><circle key={i} cx={p.x} cy={p.y} r=".006" fill="#fbbf24"/>)}</svg>}
       </div>
       <button disabled={busy||active||!cameraId} onClick={()=>void startCamera()}>Start Camera</button> <button disabled={busy||!active||running||!cameras.find(c=>c.id===cameraId)?.enabled} onClick={()=>void start()}>Start Monitoring</button> <button disabled={busy||(!active&&!running)} onClick={()=>void stop()}>Stop Monitoring / Camera</button>
-      <p>{config?`Target ${config.target_fps} FPS; one upload at a time. Snapshots refresh every second.`:'Loading capture settings…'} Background tabs pause capture.</p>
+      <p>{config?`Target ${config.target_fps} FPS; one upload at a time. Metrics stream live; REST recovery runs when disconnected.`:'Loading capture settings…'} Background tabs pause capture.</p>
     </section>
+    <section className="card" aria-label="Stream health"><h2>Dashboard connection</h2><p role="status">{health==='CONNECTED'?'LIVE':health}</p><p>Socket health is separate from camera freshness. REST recovery refreshes every five seconds while reconnecting.</p></section>
+    {!!observations.length&&<section className="card"><h2>Observed crowd count ? last 60 observations</h2><svg viewBox="0 0 600 140" role="img" aria-label={`Rolling observed crowd count; latest ${observations.at(-1)?.count}`} style={{width:'100%',maxHeight:200}}><polyline fill="none" stroke="#38bdf8" strokeWidth="3" points={observations.map((o,i)=>`${i*600/59},${130-o.count*120/Math.max(1,...observations.map(p=>p.count))}`).join(' ')}/></svg><p>Latest image occupancy: {((observations.at(-1)?.occupancy??0)*100).toFixed(1)}%. Bounding-box coverage and image-space concentration are not physical people/m?.</p></section>}
     {session&&<section className="card"><h2>Session {session.status}{session.is_stale?' · OFFLINE / STALE':''}</h2><p>Processed {session.processed_frame_count} · Dropped {session.dropped_frame_count}</p>{session.error_summary&&<p>{session.error_summary}</p>}
-      {metrics&&<><div className="live-metrics"><p>Observed crowd <strong>{metrics.observed_crowd_count}</strong></p><p>Crowd level <strong>{metrics.crowd_level}</strong></p><p>Image occupancy <strong>{(metrics.image_occupancy_ratio*100).toFixed(1)}%</strong></p><p>Concentration <strong>{metrics.crowd_concentration.toFixed(3)}</strong></p><p>Operational risk <strong>{metrics.current_operational_risk}</strong></p><p>Active alerts <strong>{metrics.active_alert_count}</strong></p></div><p>Last processing duration {(metrics.processing_duration_seconds*1000).toFixed(0)} ms. Rule-derived status does not predict danger.{session.is_stale?' Last observation is stale; current conditions are unknown.':''}</p>{Object.entries(metrics.zones).map(([id,z])=><p key={id}>{z.name}: {z.active_tracks_in_zone} active tracks</p>)}</>}
+      {metrics&&<><div className="live-metrics"><p>Observed crowd <strong>{metrics.observed_crowd_count}</strong></p><p>Crowd level <strong>{metrics.crowd_level}</strong></p><p>Image occupancy <strong>{(metrics.image_occupancy_ratio*100).toFixed(1)}%</strong></p><p>Image-space concentration <strong>{metrics.crowd_concentration.toFixed(3)}</strong></p><p>Operational risk <strong>{metrics.current_operational_risk}</strong></p><p>Active alerts <strong>{metrics.active_alert_count}</strong></p></div><p>Last processing duration {(metrics.processing_duration_seconds*1000).toFixed(0)} ms. Rule-derived status does not predict danger.{session.is_stale?' Last observation is stale; current conditions are unknown.':''}</p>{Object.entries(metrics.zones).map(([id,z])=><div key={id}><p>{z.name}: {z.active_tracks_in_zone} active tracks</p><small>{z.active===false?'Inactive zone':'Active zone'}{z.peak!==undefined?` / peak ${z.peak}`:''}</small></div>)}</>}
       <details><summary>Persisted session summary</summary><pre>{JSON.stringify(session.summary,null,2)}</pre></details>
-      {events.map(e=><article key={e.id}><strong>{e.rule_snapshot.name} · {e.severity} · {e.resolved_at?'Resolved':'Active'}</strong><details><summary>Alert evidence</summary><pre>{JSON.stringify(e.evidence,null,2)}</pre></details></article>)}
+      {events.map(e=><article key={e.id}><strong>{e.rule_snapshot.name} · {e.severity} · {e.resolved_at?'Resolved':'Active'}</strong><p>{e.rule_snapshot.rule_type} ? {e.rule_snapshot.scope}{e.evidence.zone_name?` ? ${String(e.evidence.zone_name)}`:''}{e.created_at?` ? ${new Date(e.created_at).toLocaleTimeString()}`:''}</p><p>{String(e.evidence.metric??'Observation')}: {String(e.evidence.trigger_value??'?')} (threshold {String(e.evidence.threshold??'?')})</p><details><summary>Alert evidence</summary><pre>{JSON.stringify(e.evidence,null,2)}</pre></details></article>)}
     </section>}
     {cameraId&&<CameraConfiguration key={cameraId} cameraId={cameraId} points={points} clear={()=>setPoints([])} onZones={setZones}/>}
     {!!history.length&&<section className="card"><h2>Session history</h2>{history.map(s=><p key={s.id}><button disabled={running} onClick={()=>{setSession(s);void liveApi<LiveEvent[]>(`/live/sessions/${s.id}/alerts`).then(setEvents).catch(()=>setError('Unable to load alert history'))}}>{s.status} · {s.processed_frame_count} frames · {s.id.slice(0,8)}</button></p>)}</section>}

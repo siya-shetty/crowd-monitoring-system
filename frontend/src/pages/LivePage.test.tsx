@@ -3,13 +3,18 @@ import { vi } from 'vitest'
 import { LivePage } from './LivePage'
 import { cameraError } from '../lib/camera'
 import { liveApi, sendFrame } from '../services/live'
+import { connectLive, type LiveState, type SocketHealth } from '../services/liveSocket'
 
 vi.mock('../services/live',()=>({liveApi:vi.fn(),sendFrame:vi.fn()}))
+vi.mock('../services/liveSocket',()=>({connectLive:vi.fn()}))
+let receive:(state:LiveState)=>void
+let connection:(health:SocketHealth)=>void
 const camera={id:'camera',name:'Desk',enabled:true,source_type:'BROWSER'}
 const session={id:'session',camera_id:'camera',status:'RUNNING',processed_frame_count:2,dropped_frame_count:1,summary:{},latest_snapshot:{observed_crowd_count:3,crowd_level:'LOW',image_occupancy_ratio:.2,crowd_concentration:.5,current_operational_risk:'HIGH',active_alert_count:1,processing_duration_seconds:.1,zones:{z:{name:'Entry',active_tracks_in_zone:2}}}}
 const stopTrack=vi.fn()
 beforeEach(()=>{
   vi.clearAllMocks()
+  vi.mocked(connectLive).mockImplementation((_id,onState,onHealth)=>{receive=onState;connection=onHealth;return()=>{}})
   Object.defineProperty(window,'isSecureContext',{configurable:true,value:true})
   Object.defineProperty(navigator,'mediaDevices',{configurable:true,value:{getUserMedia:vi.fn().mockResolvedValue({getTracks:()=>[{stop:stopTrack}],getVideoTracks:()=>[]})}})
   vi.spyOn(HTMLMediaElement.prototype,'play').mockResolvedValue()
@@ -22,6 +27,24 @@ beforeEach(()=>{
     return []
   })
   vi.mocked(sendFrame).mockResolvedValue(session.latest_snapshot as never)
+})
+
+test('socket metrics, chart, stale camera, alerts and recovery remain separate',async()=>{
+  render(<LivePage/>);await screen.findByRole('option',{name:'Desk'})
+  fireEvent.click(screen.getByRole('button',{name:'Start Camera'}));await screen.findByText(/Camera active/)
+  fireEvent.click(screen.getByRole('button',{name:'Start Monitoring'}));await screen.findByText('HIGH')
+  await waitFor(()=>expect(connectLive).toHaveBeenCalled())
+  act(()=>{
+    connection('CONNECTED')
+    receive({...session,is_stale:true,latest_snapshot:{...session.latest_snapshot,sequence:1,observed_crowd_count:8},alerts:[{id:'alert',severity:'WARNING',rule_snapshot:{name:'Presence',scope:'CAMERA',rule_type:'CROWD_COUNT_ABOVE'},evidence:{metric:'observed_crowd_count',trigger_value:8,threshold:5},resolved_at:null}]} as unknown as LiveState)
+  })
+  expect(screen.getByText('LIVE')).toBeInTheDocument()
+  expect(screen.getByText(/OFFLINE \/ STALE/)).toBeInTheDocument()
+  expect(screen.getByRole('img',{name:/latest 8/})).toBeInTheDocument()
+  expect(screen.getByText(/Presence · WARNING · Active/)).toBeInTheDocument()
+  act(()=>connection('RECONNECTING'))
+  expect(screen.getByText('RECONNECTING')).toBeInTheDocument()
+  await waitFor(()=>expect(liveApi).toHaveBeenCalledWith('/live/sessions/session'))
 })
 
 test('camera creation, permission, monitoring metrics, stop and cleanup',async()=>{
@@ -37,6 +60,7 @@ test('camera creation, permission, monitoring metrics, stop and cleanup',async()
   await screen.findByText('HIGH')
   expect(screen.getByText('Entry: 2 active tracks')).toBeInTheDocument()
   expect(screen.getByText('Processed 2 · Dropped 1')).toBeInTheDocument()
+  await waitFor(()=>expect(screen.getByRole('button',{name:'Stop Monitoring / Camera'})).toBeEnabled())
   fireEvent.click(screen.getByRole('button',{name:'Stop Monitoring / Camera'}))
   await screen.findByText('Session STOPPED')
   expect(stopTrack).toHaveBeenCalledTimes(1)

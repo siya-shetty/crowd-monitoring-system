@@ -27,6 +27,7 @@ services:
       LIVE_RECENT_OBSERVATIONS: ${LIVE_RECENT_OBSERVATIONS:-300}
       LIVE_SESSION_STALE_SECONDS: ${LIVE_SESSION_STALE_SECONDS:-10}
       LIVE_MAX_SESSIONS: ${LIVE_MAX_SESSIONS:-8}
+      LIVE_WS_SUBSCRIBER_CAP: ${LIVE_WS_SUBSCRIBER_CAP:-4}
     ports: ["8000:8000"]
     depends_on:
       postgres: {condition: service_healthy}

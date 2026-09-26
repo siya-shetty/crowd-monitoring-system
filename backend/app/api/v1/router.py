@@ -10,3 +10,6 @@ api_router.include_router(videos_router)
 api_router.include_router(zones_router)
 api_router.include_router(alerts_router)
 api_router.include_router(live_router)
+
+from app.websocket.routes import router as websocket_router
+api_router.include_router(websocket_router)
