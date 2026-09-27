@@ -1,6 +1,6 @@
 # Crowd Monitoring and Crowd Safety System
 
-A privacy-conscious crowd-monitoring application implemented through Phases 1-12, with Phase 13 release hardening. It includes React/TypeScript, FastAPI, PostgreSQL, JWT authentication, protected video analysis with YOLO11 and anonymous ByteTrack tracking, zones, rule-derived alerts, browser live monitoring with WebSocket metrics and REST fallback, analytics, events, incidents, and CSV reporting.
+A privacy-conscious crowd-monitoring application implemented through Phases 1-12, with Phase 13 release hardening. It includes React/TypeScript, FastAPI, PostgreSQL, JWT authentication, protected video analysis with YOLO11 and anonymous ByteTrack tracking, zones, rule-derived alerts, browser live monitoring with WebSocket metrics and REST fallback, analytics, incidents, and CSV reporting.
 
 Before Phase 14, follow [deployment readiness](docs/deployment-readiness.md). No deployment is performed by Phase 13.
 
@@ -95,7 +95,7 @@ REST remains authoritative. The current Alembic head is `20260926_09`.
 ## Analytics and operational reporting
 
 Phase 11 adds persisted observation analytics; see [analytics](docs/analytics.md).
-Phase 12 adds owned events, incident review and spreadsheet-safe CSV export;
-see [events and incidents](docs/events-incidents.md). Settings remains explicitly
+Incident review and spreadsheet-safe CSV export are available;
+see [incidents](docs/incidents.md). Settings remains explicitly
 unavailable, and Command Center remains clearly labeled demo data; use Analytics
 and Live Monitoring for actual observations.

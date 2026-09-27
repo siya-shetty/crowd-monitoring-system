@@ -7,6 +7,8 @@ from app.db.base import Base
 
 
 class OperationalEvent(Base):
+    # Legacy mapping retained for migration metadata and historical incident FKs.
+    # Events have no active API or application workflow.
     __tablename__ = 'operational_events'
     __table_args__ = (
         CheckConstraint("status IN ('PLANNED','ACTIVE','COMPLETED','CANCELLED')", name='ck_event_status'),
@@ -38,6 +40,7 @@ class Incident(Base):
     status: Mapped[str] = mapped_column(String(16), default='OPEN', index=True)
     occurred_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), index=True)
     resolved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    # Preserve historical links; incident writes no longer accept this field.
     event_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('operational_events.id', ondelete='SET NULL'), index=True)
     camera_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('cameras.id', ondelete='SET NULL'), index=True)
     video_id: Mapped[uuid.UUID | None] = mapped_column(ForeignKey('videos.id', ondelete='SET NULL'), index=True)

@@ -2,12 +2,11 @@
 from datetime import datetime, timezone
 from fastapi import HTTPException
 from sqlalchemy import select
-from app.models.operations import OperationalEvent
 from app.models.live import Camera, LiveMonitoringSession, LiveAlertEvent
 from app.models.video import Video
 from app.models.alert import AlertEvent
 
-LINKS = {'event_id': (OperationalEvent, 'name'), 'camera_id': (Camera, 'name'),
+LINKS = {'camera_id': (Camera, 'name'),
          'video_id': (Video, 'original_filename'), 'live_session_id': (LiveMonitoringSession, 'started_at')}
 
 
